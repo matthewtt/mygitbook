@@ -1,0 +1,577 @@
+<!DOCTYPE HTML>
+<html lang="en-US" >
+    
+    <head>
+        
+        <meta charset="UTF-8">
+        <title>创建ColumnFamilyStore | Cassandra</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 1.0.3">
+        <meta name="HandheldFriendly" content="true"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+        
+    
+    
+    
+    <link rel="next" href="../cassandra/bloom_filter.html" />
+    
+    
+    <link rel="prev" href="../cassandra/README.html" />
+    
+
+        
+    </head>
+    <body>
+        
+        
+<link rel="stylesheet" href="../gitbook/style.css">
+
+
+        
+    <div class="book"  data-level="2.1" data-basepath=".." data-revision="1417684833363">
+    
+
+<div class="book-summary">
+    <div class="book-search">
+        <input type="text" placeholder="Type to search" class="form-control" />
+    </div>
+    <ul class="summary">
+        
+    	
+    	
+    	
+
+        
+
+        
+    
+        
+        <li class="chapter " data-level="0" data-path="index.html">
+            
+                
+                    <a href="../index.html">
+                        <i class="fa fa-check"></i>
+                        
+                         Cassandra Readins
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1" data-path="cassandra_readings.html">
+            
+                
+                    <a href="../cassandra_readings.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.</b>
+                        
+                         Cassandra启动
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2" data-path="cassandra/README.html">
+            
+                
+                    <a href="../cassandra/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.</b>
+                        
+                         Cassandra查询过程
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter active" data-level="2.1" data-path="cassandra/columnfamilystore.html">
+            
+                
+                    <a href="../cassandra/columnfamilystore.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.1.</b>
+                        
+                         创建ColumnFamilyStore
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.2" data-path="cassandra/bloom_filter.html">
+            
+                
+                    <a href="../cassandra/bloom_filter.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.2.</b>
+                        
+                         Bloom Filter实现
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.3" data-path="cassandra/cassandra_cache.html">
+            
+                
+                    <a href="../cassandra/cassandra_cache.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.3.</b>
+                        
+                         Cassandra Cache
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3" data-path="cassandra/README">
+            
+                
+                    <a href="../cassandra/README">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.</b>
+                        
+                         Cassandra写入过程
+                    </a>
+                
+            
+            
+        </li>
+    
+
+
+        
+        <li class="divider"></li>
+        <li>
+            <a href="http://www.gitbook.io/" target="blank" class="gitbook-link">Published using GitBook</a>
+        </li>
+        
+    </ul>
+</div>
+
+    <div class="book-body">
+        <div class="body-inner">
+            <div class="book-header">
+    <!-- Actions Left -->
+    <a href="#" class="btn pull-left toggle-summary" aria-label="Toggle summary"><i class="fa fa-align-justify"></i></a>
+    <a href="#" class="btn pull-left toggle-search" aria-label="Toggle search"><i class="fa fa-search"></i></a>
+    
+    <div id="font-settings-wrapper" class="dropdown pull-left">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle font settings"><i class="fa fa-font"></i>
+        </a>
+        <div class="dropdown-menu font-settings">
+    <div class="dropdown-caret">
+        <span class="caret-outer"></span>
+        <span class="caret-inner"></span>
+    </div>
+
+    <div class="buttons">
+        <button type="button" id="reduce-font-size" class="button size-2">A</button>
+        <button type="button" id="enlarge-font-size" class="button size-2">A</button>
+    </div>
+
+    <div class="buttons font-family-list">
+        <button type="button" data-font="0" class="button">Serif</button>
+        <button type="button" data-font="1" class="button">Sans</button>
+    </div>
+
+    <div class="buttons color-theme-list">
+        <button type="button" id="color-theme-preview-0" class="button size-3" data-theme="0">White</button>
+        <button type="button" id="color-theme-preview-1" class="button size-3" data-theme="1">Sepia</button>
+        <button type="button" id="color-theme-preview-2" class="button size-3" data-theme="2">Night</button>
+    </div>
+</div>
+
+    </div>
+
+    <!-- Actions Right -->
+    
+    <div class="dropdown pull-right">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle share dropdown"><i class="fa fa-share-alt"></i>
+        </a>
+        <div class="dropdown-menu font-settings dropdown-left">
+            <div class="dropdown-caret">
+                <span class="caret-outer"></span>
+                <span class="caret-inner"></span>
+            </div>
+            <div class="buttons">
+                <button type="button" data-sharing="twitter" class="button">Twitter</button>
+                <button type="button" data-sharing="google-plus" class="button">Google</button>
+                <button type="button" data-sharing="facebook" class="button">Facebook</button>
+                <button type="button" data-sharing="weibo" class="button">Weibo</button>
+                <button type="button" data-sharing="instapaper" class="button">Instapaper</button>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <a href="#" target="_blank" class="btn pull-right google-plus-sharing-link sharing-link" data-sharing="google-plus" aria-label="Share on Google Plus"><i class="fa fa-google-plus"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right facebook-sharing-link sharing-link" data-sharing="facebook" aria-label="Share on Facebook"><i class="fa fa-facebook"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right twitter-sharing-link sharing-link" data-sharing="twitter" aria-label="Share on Twitter"><i class="fa fa-twitter"></i></a>
+    
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../" >Cassandra</a>
+    </h1>
+</div>
+
+            <div class="page-wrapper" tabindex="-1">
+                <div class="page-inner">
+                
+                
+                    <section class="normal" id="section-gitbook_2863">
+                    
+                        <h1 id="columnfamilystore">创建ColumnFamilyStore</h1>
+<h2 id="datatracker">创建DataTracker</h2>
+<pre><code class="lang-java"><span class="hljs-comment">//Memtable类</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Memtable</span></span>{
+  MemtableAllocator allocator;
+  <span class="hljs-comment">//the write barrier for directing writes to this memtable during a switch</span>
+  <span class="hljs-keyword">volatile</span> OpOrder.Barrier writeBarrier;
+  ColumnFamilyStore cfs;
+  AtomicLong liveDataSize = <span class="hljs-keyword">new</span> AtomicLong(<span class="hljs-number">0</span>);
+  AtomicLong currentOperations = <span class="hljs-keyword">new</span> AtomicLong(<span class="hljs-number">0</span>);
+  <span class="hljs-comment">// We index the memtable by RowPosition only for the purpose of being able</span>
+  <span class="hljs-comment">// to select key range using Token.KeyBound. However put() ensures that we</span>
+  <span class="hljs-comment">// actually only store DecoratedKey.</span>
+  ConcurrentNavigableMap&lt;RowPosition, AtomicBTreeColumns&gt; rows = <span class="hljs-keyword">new</span> ConcurrentSkipListMap&lt;&gt;();
+  CellNameType initialComparator;
+  <span class="hljs-comment">// the last ReplayPosition owned by this Memtable; all ReplayPositions lower are owned by this or an earlier Memtable</span>
+  AtomicReference&lt;ReplayPosition&gt; lastReplayPosition;
+  <span class="hljs-comment">// the "first" ReplayPosition owned by this Memtable;</span>
+  <span class="hljs-comment">// this is inaccurate, and only used as a convenience to prevent CLSM flushing wantonly</span>
+  ReplayPosition minReplayPosition = CommitLog.instance.getContext();
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Memtable</span><span class="hljs-params">(ColumnFamilyStore cfs)</span></span>{
+    <span class="hljs-keyword">this</span>.cfs = cfs;
+    <span class="hljs-keyword">this</span>.allocator = MEMORY_POOL.newAllocator();
+    <span class="hljs-keyword">this</span>.initialComparator = cfs.metadata.comparator;
+    <span class="hljs-keyword">this</span>.cfs.scheduleFlush();
+  }
+}
+
+<span class="hljs-javadoc">/**
+ * An immutable structure holding the current memtable, the memtables pending
+ * flush, the sstables for a column family, and the sstables that are active
+ * in compaction (a subset of the sstables).
+ */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">View</span>
+</span>{
+    <span class="hljs-javadoc">/**
+     * ordinarily a list of size 1, but when preparing to flush will contain both the memtable we will flush
+     * and the new replacement memtable, until all outstanding write operations on the old table complete.
+     * The last item in the list is always the "current" memtable.
+     */</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> List&lt;Memtable&gt; liveMemtables;
+   　<span class="hljs-javadoc">/**
+　    * contains all memtables that are no longer referenced for writing and are queued for / in the process of being
+      * flushed. In chronologically ascending order.
+  　  */</span>
+      <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> List&lt;Memtable&gt; flushingMemtables;
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> Set&lt;SSTableReader&gt; compacting;
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> Set&lt;SSTableReader&gt; sstables;
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> SSTableIntervalTree intervalTree;
+
+      View(List&lt;Memtable&gt; liveMemtables, List&lt;Memtable&gt; flushingMemtables, Set&lt;SSTableReader&gt; sstables, Set&lt;SSTableReader&gt; compacting, SSTableIntervalTree intervalTree){
+          <span class="hljs-keyword">this</span>.liveMemtables = liveMemtables;
+          <span class="hljs-keyword">this</span>.flushingMemtables = flushingMemtables;
+          <span class="hljs-keyword">this</span>.sstables = sstables;
+          <span class="hljs-keyword">this</span>.compacting = compacting;
+          <span class="hljs-keyword">this</span>.intervalTree = intervalTree;
+      }
+｝
+
+<span class="hljs-comment">//DataTracker构造函数</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">DataTracker</span><span class="hljs-params">(ColumnFamilyStore cfstore)</span></span>{
+    <span class="hljs-keyword">this</span>.cfstore = cfstore;
+    <span class="hljs-keyword">this</span>.view = <span class="hljs-keyword">new</span> AtomicReference&lt;&gt;();
+    <span class="hljs-keyword">this</span>.init();
+}
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">init</span><span class="hljs-params">()</span>
+</span>{
+    view.set(<span class="hljs-keyword">new</span> View(
+            ImmutableList.of(<span class="hljs-keyword">new</span> Memtable(cfstore)),
+            ImmutableList.&lt;Memtable&gt;of(),
+            Collections.&lt;SSTableReader&gt;emptySet(),
+            Collections.&lt;SSTableReader&gt;emptySet(),
+            SSTableIntervalTree.empty()));
+}
+</code></pre>
+<h2 id="sstablereader">初始化SSTableReader</h2>
+<ol>
+<li>从Statistics.db文件读取validation和stats信息.</li>
+<li>检查validation数据.</li>
+<li>通过internalOpen函数找到BigTableReader, 执行其构造函数, 实际调用SSTableReader的构造函数.</li>
+<li>装载index和filter.</li>
+<li><p>对SSTableReader做validate.</p>
+<p>从Directories中得到数据文件，按照<code>Set&lt;Map.Entry&lt;Descriptor, Set&lt;Component&gt;&gt;&gt;</code>存放, 对每个Descriptor对应的Set<Component>打开一个线程来创建SStableReader.</p>
+<p>Descriptor结构</p>
+<p><img src="images/descriptor_object.png" alt="Descriptor"></p>
+<p>数据文件类型</p>
+<p><img src="images/data_file_list.png" alt="data files"></p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> SSTableReader <span class="hljs-title">open</span><span class="hljs-params">(Descriptor descriptor,
+                                   Set&lt;Component&gt; components,
+                                   CFMetaData metadata,
+                                   IPartitioner partitioner,
+                                   <span class="hljs-keyword">boolean</span> validate)</span> <span class="hljs-keyword">throws</span> IOException</span>{
+   <span class="hljs-comment">//从Statistics.db中读取validation和stats信息</span>
+   Map&lt;MetadataType, MetadataComponent&gt; sstableMetadata = descriptor.getMetadataSerializer().deserialize(descriptor,
+             EnumSet.of(MetadataType.VALIDATION, MetadataType.STATS));
+   ValidationMetadata validationMetadata = (ValidationMetadata) sstableMetadata.get(MetadataType.VALIDATION);
+     StatsMetadata statsMetadata = (StatsMetadata) sstableMetadata.get(MetadataType.STATS);
+   <span class="hljs-comment">// Check if sstable is created using same partitioner.</span>
+   <span class="hljs-comment">// Partitioner can be null, which indicates older version of sstable or no stats available.</span>
+   <span class="hljs-comment">// In that case, we skip the check.</span>
+   String partitionerName = partitioner.getClass().getCanonicalName();
+   <span class="hljs-keyword">if</span> (validationMetadata != <span class="hljs-keyword">null</span> &amp;&amp; !partitionerName.equals(validationMetadata.partitioner)){
+         System.exit(<span class="hljs-number">1</span>);
+   }
+   SSTableReader sstable = internalOpen(descriptor, components, metadata, partitioner, System.currentTimeMillis(), statsMetadata, OpenReason.NORMAL);
+   <span class="hljs-comment">// load index and filter</span>
+   <span class="hljs-keyword">long</span> start = System.nanoTime();
+   sstable.load(validationMetadata);
+   <span class="hljs-keyword">if</span> (validate)
+       sstable.validate();
+   <span class="hljs-keyword">return</span> sstable;
+}
+</code></pre>
+</li>
+</ol>
+<h3 id="sstableread">SSTableRead构造函数</h3>
+<ol>
+<li>创建SSTableDeletingTask.</li>
+<li>从system.sstable_activity中得到RestorableMeter, 创建ReadMeterSyncTask, 每隔5分钟执行以此更新操作.<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">SSTableReader</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Descriptor desc,
+                         Set&lt;Component&gt; components,
+                         CFMetaData metadata,
+                         IPartitioner partitioner,
+                         <span class="hljs-keyword">long</span> maxDataAge,
+                         StatsMetadata sstableMetadata,
+                         OpenReason openReason)</span>
+</span>{
+  <span class="hljs-keyword">this</span>.rowIndexEntrySerializer = descriptor.version.getSSTableFormat().getIndexSerializer(metadata);
+  deletingTask = <span class="hljs-keyword">new</span> SSTableDeletingTask(<span class="hljs-keyword">this</span>);
+  readMeter = SystemKeyspace.getSSTableReadMeter(desc.ksname, desc.cfname, desc.generation);
+  <span class="hljs-comment">// sync the average read rate to system.sstable_activity every five minutes, starting one minute from now</span>
+  readMeterSyncFuture = syncExecutor.scheduleAtFixedRate(<span class="hljs-keyword">new</span> Runnable()
+  {
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span>
+      </span>{
+          <span class="hljs-keyword">if</span> (!isCompacted.get())
+          {
+              meterSyncThrottle.acquire();
+              SystemKeyspace.persistSSTableReadMeter(desc.ksname, desc.cfname, desc.generation, readMeter);
+          }
+      }
+  }, <span class="hljs-number">1</span>, <span class="hljs-number">5</span>, TimeUnit.MINUTES);
+</code></pre>
+</li>
+</ol>
+<h3 id="indexfilter">装载index和filter</h3>
+<ol>
+<li>从Summary.db读取IndexSumary, 将index entry 和 data entry的position分别读到ifile和dfile.</li>
+<li>如果Summary.db load失败, 创建IndexSummary.</li>
+<li><p>把创建的IndexSummary保存到Summary.db</p>
+<pre><code class="lang-java"><span class="hljs-javadoc">/**
+* Loads ifile, dfile and indexSummary, and optionally recreates the bloom filter.
+*<span class="hljs-javadoctag"> @param</span> saveSummaryIfCreated for bulk loading purposes, if the summary was absent and needed to be built, you can avoid persisting it to disk by setting this to false
+*/</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">load</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> recreateBloomFilter, <span class="hljs-keyword">boolean</span> saveSummaryIfCreated)</span> <span class="hljs-keyword">throws</span> IOException
+</span>{
+   SegmentedFile.Builder ibuilder = SegmentedFile.getBuilder(DatabaseDescriptor.getIndexAccessMode());
+   SegmentedFile.Builder dbuilder = compression
+             ? SegmentedFile.getCompressedBuilder()
+             : SegmentedFile.getBuilder(DatabaseDescriptor.getDiskAccessMode());
+   <span class="hljs-keyword">boolean</span> summaryLoaded = loadSummary(ibuilder, dbuilder);
+   <span class="hljs-keyword">if</span> (recreateBloomFilter || !summaryLoaded)
+       buildSummary(recreateBloomFilter, ibuilder, dbuilder, summaryLoaded, Downsampling.BASE_SAMPLING_LEVEL);
+     ifile = ibuilder.complete(descriptor.filenameFor(Component.PRIMARY_INDEX));
+     dfile = dbuilder.complete(descriptor.filenameFor(Component.DATA));
+     <span class="hljs-keyword">if</span> (saveSummaryIfCreated &amp;&amp; (recreateBloomFilter || !summaryLoaded))
+         <span class="hljs-comment">// save summary information to disk</span>
+         saveSummary(ibuilder, dbuilder);
+ }
+</code></pre>
+</li>
+</ol>
+<h3 id="indexsumary-">IndexSumary 结构与解释</h3>
+<p> <img src="images/IndexSummaryDB_Structure.png" alt="IndexSumaryDB"></p>
+<p> Layout of Memory for index summaries:</p>
+<ol>
+<li>A <strong>header</strong> containing the offset into <strong>bytes</strong> of entries in the index summary data, consisting of one four byte position for each entry in the summary.  This allows us do simple math in getIndex() to find the position in the Memory to start reading the actual index summary entry.  (This is necessary because keys can have different lengths.)</li>
+<li><p>A sequence of (DecoratedKey, position) pairs, where position is the offset into the actual index file.</p>
+<p><code>RefCountedMemory</code> 将index key 和 index position(指向Index.db的位置)存储在offheap</p>
+<p><img src="images/IndexSummary.png" alt="IndexSumary"></p>
+</li>
+</ol>
+<h4 id="indexsummary">装载IndexSummary</h4>
+<pre><code class="lang-java"> <span class="hljs-comment">//Load index summary from Summary.db file if it exists.</span>
+ <span class="hljs-comment">//if loaded index summary has different index interval from current value stored in schema,</span>
+ <span class="hljs-comment">//then Summary.db file will be deleted and this returns false to rebuild summary.</span>
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">loadSummary</span><span class="hljs-params">(SegmentedFile.Builder ibuilder, SegmentedFile.Builder dbuilder)</span></span>{
+     File summariesFile = <span class="hljs-keyword">new</span> File(descriptor.filenameFor(Component.SUMMARY));
+     DataInputStream iStream = <span class="hljs-keyword">new</span> DataInputStream(<span class="hljs-keyword">new</span> FileInputStream(summariesFile));
+     indexSummary = IndexSummary.serializer.deserialize(iStream, partitioner, descriptor.version.hasSamplingLevel(), metadata.getMinIndexInterval(), metadata.getMaxIndexInterval());
+     first = partitioner.decorateKey(ByteBufferUtil.readWithLength(iStream));
+     last = partitioner.decorateKey(ByteBufferUtil.readWithLength(iStream));
+     ibuilder.deserializeBounds(iStream);
+     dbuilder.deserializeBounds(iStream);
+ }
+</code></pre>
+<h4 id="indexsummary">创建IndexSummary</h4>
+<pre><code class="lang-java"> <span class="hljs-comment">//Build index summary(and optionally bloom filter) by reading through Index.db file.</span>
+ <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">buildSummary</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> recreateBloomFilter, SegmentedFile.Builder ibuilder, SegmentedFile.Builder dbuilder, <span class="hljs-keyword">boolean</span> summaryLoaded, <span class="hljs-keyword">int</span> samplingLevel)</span> <span class="hljs-keyword">throws</span> IOException</span>{
+    <span class="hljs-comment">// we read the positions in a BRAF</span>
+    <span class="hljs-comment">//so we don't have to worry about an entry spanning a mmap boundary.</span>
+    RandomAccessReader primaryIndex = RandomAccessReader.open(<span class="hljs-keyword">new</span> File(descriptor.filenameFor(Component.PRIMARY_INDEX)));
+    <span class="hljs-keyword">try</span>
+    {
+        <span class="hljs-keyword">long</span> indexSize = primaryIndex.length();
+        <span class="hljs-keyword">long</span> histogramCount = sstableMetadata.estimatedRowSize.count();
+        <span class="hljs-keyword">long</span> estimatedKeys = histogramCount &gt; <span class="hljs-number">0</span> &amp;&amp; !sstableMetadata.estimatedRowSize.isOverflowed()
+                ? histogramCount
+                : estimateRowsFromIndex(primaryIndex);
+        <span class="hljs-keyword">if</span> (recreateBloomFilter)
+            <span class="hljs-comment">//创建bloom filter</span>
+            bf = FilterFactory.getFilter(estimatedKeys, metadata.getBloomFilterFpChance(), <span class="hljs-keyword">true</span>);
+        IndexSummaryBuilder summaryBuilder = <span class="hljs-keyword">null</span>;
+        <span class="hljs-keyword">if</span> (!summaryLoaded)
+            summaryBuilder = <span class="hljs-keyword">new</span> IndexSummaryBuilder(estimatedKeys, metadata.getMinIndexInterval(), samplingLevel);
+        <span class="hljs-keyword">long</span> indexPosition;
+        RowIndexEntry.IndexSerializer rowIndexSerializer = descriptor.getFormat().getIndexSerializer(metadata);
+        <span class="hljs-keyword">while</span> ((indexPosition = primaryIndex.getFilePointer()) != indexSize)
+        {
+            ByteBuffer key = ByteBufferUtil.readWithShortLength(primaryIndex);
+            <span class="hljs-comment">//顺序读取每个RowIndexEntry</span>
+            RowIndexEntry indexEntry = rowIndexSerializer.deserialize(primaryIndex, descriptor.version);
+            DecoratedKey decoratedKey = partitioner.decorateKey(key);
+            <span class="hljs-keyword">if</span> (first == <span class="hljs-keyword">null</span>)
+                first = decoratedKey;
+            last = decoratedKey;
+            <span class="hljs-keyword">if</span> (recreateBloomFilter)
+                <span class="hljs-comment">//加入bloom filter</span>
+                bf.add(decoratedKey.getKey());
+            <span class="hljs-comment">// if summary was already read from disk we don't want to re-populate it using primary index</span>
+            <span class="hljs-keyword">if</span> (!summaryLoaded)
+            {
+                <span class="hljs-comment">//按照minIndexInterval间隔存放index key, 这些key在IndexSummary存放在offheap</span>
+                summaryBuilder.maybeAddEntry(decoratedKey, indexPosition);
+                ibuilder.addPotentialBoundary(indexPosition);
+                <span class="hljs-comment">//position就是RowIndex指向Data.db的位置, Entry的开始位置</span>
+                dbuilder.addPotentialBoundary(indexEntry.position);
+            }
+        }
+        <span class="hljs-keyword">if</span> (!summaryLoaded)
+            indexSummary = summaryBuilder.build(partitioner);
+    }<span class="hljs-keyword">finally</span>{
+        FileUtils.closeQuietly(primaryIndex);
+    }
+    first = getMinimalKey(first);
+    last = getMinimalKey(last);
+ }
+
+ <span class="hljs-comment">//IndexSummaryBuilder中的maybeAddEntry, //TODO startPoints作用</span>
+ <span class="hljs-function"><span class="hljs-keyword">public</span> IndexSummaryBuilder <span class="hljs-title">maybeAddEntry</span><span class="hljs-params">(DecoratedKey decoratedKey, <span class="hljs-keyword">long</span> indexPosition)</span>
+ </span>{
+    <span class="hljs-keyword">if</span> (keysWritten % minIndexInterval == <span class="hljs-number">0</span>)
+    {
+        <span class="hljs-comment">// see if we should skip this key based on our sampling level</span>
+        <span class="hljs-keyword">boolean</span> shouldSkip = <span class="hljs-keyword">false</span>;
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> start : startPoints)
+        {
+            <span class="hljs-keyword">if</span> ((indexIntervalMatches - start) % BASE_SAMPLING_LEVEL == <span class="hljs-number">0</span>)
+            {
+                shouldSkip = <span class="hljs-keyword">true</span>;
+                <span class="hljs-keyword">break</span>;
+            }
+        }
+        <span class="hljs-keyword">if</span> (!shouldSkip)
+        {
+            keys.add(getMinimalKey(decoratedKey));
+            <span class="hljs-comment">//加入offheap</span>
+            offheapSize += decoratedKey.getKey().remaining();
+            positions.add(indexPosition);
+            <span class="hljs-comment">//加入offheap</span>
+            offheapSize += TypeSizes.NATIVE.sizeof(indexPosition);
+        }
+        indexIntervalMatches++;
+    }
+    keysWritten++;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+ }
+</code></pre>
+
+                    
+                    </section>
+                
+                
+                </div>
+            </div>
+        </div>
+
+        
+        <a href="../cassandra/README.html" class="navigation navigation-prev " aria-label="Previous page: Cassandra查询过程"><i class="fa fa-angle-left"></i></a>
+        
+        
+        <a href="../cassandra/bloom_filter.html" class="navigation navigation-next " aria-label="Next page: Bloom Filter实现"><i class="fa fa-angle-right"></i></a>
+        
+    </div>
+</div>
+
+        
+<script src="../gitbook/app.js"></script>
+
+    
+    <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+    
+    <script src="../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    
+
+<script>
+require(["gitbook"], function(gitbook) {
+    var config = {"fontSettings":{"theme":null,"family":"sans","size":2}};
+    gitbook.start(config);
+});
+</script>
+
+        
+    </body>
+    
+</html>

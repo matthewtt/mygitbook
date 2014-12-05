@@ -1,0 +1,377 @@
+<!DOCTYPE HTML>
+<html lang="en-US" >
+    
+    <head>
+        
+        <meta charset="UTF-8">
+        <title>Bloom Filter实现 | Cassandra</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 1.0.3">
+        <meta name="HandheldFriendly" content="true"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+        
+    
+    
+    
+    <link rel="next" href="../cassandra/cassandra_cache.html" />
+    
+    
+    <link rel="prev" href="../cassandra/columnfamilystore.html" />
+    
+
+        
+    </head>
+    <body>
+        
+        
+<link rel="stylesheet" href="../gitbook/style.css">
+
+
+        
+    <div class="book"  data-level="2.2" data-basepath=".." data-revision="1417684833363">
+    
+
+<div class="book-summary">
+    <div class="book-search">
+        <input type="text" placeholder="Type to search" class="form-control" />
+    </div>
+    <ul class="summary">
+        
+    	
+    	
+    	
+
+        
+
+        
+    
+        
+        <li class="chapter " data-level="0" data-path="index.html">
+            
+                
+                    <a href="../index.html">
+                        <i class="fa fa-check"></i>
+                        
+                         Cassandra Readins
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1" data-path="cassandra_readings.html">
+            
+                
+                    <a href="../cassandra_readings.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.</b>
+                        
+                         Cassandra启动
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2" data-path="cassandra/README.html">
+            
+                
+                    <a href="../cassandra/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.</b>
+                        
+                         Cassandra查询过程
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="2.1" data-path="cassandra/columnfamilystore.html">
+            
+                
+                    <a href="../cassandra/columnfamilystore.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.1.</b>
+                        
+                         创建ColumnFamilyStore
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter active" data-level="2.2" data-path="cassandra/bloom_filter.html">
+            
+                
+                    <a href="../cassandra/bloom_filter.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.2.</b>
+                        
+                         Bloom Filter实现
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.3" data-path="cassandra/cassandra_cache.html">
+            
+                
+                    <a href="../cassandra/cassandra_cache.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.3.</b>
+                        
+                         Cassandra Cache
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3" data-path="cassandra/README">
+            
+                
+                    <a href="../cassandra/README">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.</b>
+                        
+                         Cassandra写入过程
+                    </a>
+                
+            
+            
+        </li>
+    
+
+
+        
+        <li class="divider"></li>
+        <li>
+            <a href="http://www.gitbook.io/" target="blank" class="gitbook-link">Published using GitBook</a>
+        </li>
+        
+    </ul>
+</div>
+
+    <div class="book-body">
+        <div class="body-inner">
+            <div class="book-header">
+    <!-- Actions Left -->
+    <a href="#" class="btn pull-left toggle-summary" aria-label="Toggle summary"><i class="fa fa-align-justify"></i></a>
+    <a href="#" class="btn pull-left toggle-search" aria-label="Toggle search"><i class="fa fa-search"></i></a>
+    
+    <div id="font-settings-wrapper" class="dropdown pull-left">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle font settings"><i class="fa fa-font"></i>
+        </a>
+        <div class="dropdown-menu font-settings">
+    <div class="dropdown-caret">
+        <span class="caret-outer"></span>
+        <span class="caret-inner"></span>
+    </div>
+
+    <div class="buttons">
+        <button type="button" id="reduce-font-size" class="button size-2">A</button>
+        <button type="button" id="enlarge-font-size" class="button size-2">A</button>
+    </div>
+
+    <div class="buttons font-family-list">
+        <button type="button" data-font="0" class="button">Serif</button>
+        <button type="button" data-font="1" class="button">Sans</button>
+    </div>
+
+    <div class="buttons color-theme-list">
+        <button type="button" id="color-theme-preview-0" class="button size-3" data-theme="0">White</button>
+        <button type="button" id="color-theme-preview-1" class="button size-3" data-theme="1">Sepia</button>
+        <button type="button" id="color-theme-preview-2" class="button size-3" data-theme="2">Night</button>
+    </div>
+</div>
+
+    </div>
+
+    <!-- Actions Right -->
+    
+    <div class="dropdown pull-right">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle share dropdown"><i class="fa fa-share-alt"></i>
+        </a>
+        <div class="dropdown-menu font-settings dropdown-left">
+            <div class="dropdown-caret">
+                <span class="caret-outer"></span>
+                <span class="caret-inner"></span>
+            </div>
+            <div class="buttons">
+                <button type="button" data-sharing="twitter" class="button">Twitter</button>
+                <button type="button" data-sharing="google-plus" class="button">Google</button>
+                <button type="button" data-sharing="facebook" class="button">Facebook</button>
+                <button type="button" data-sharing="weibo" class="button">Weibo</button>
+                <button type="button" data-sharing="instapaper" class="button">Instapaper</button>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <a href="#" target="_blank" class="btn pull-right google-plus-sharing-link sharing-link" data-sharing="google-plus" aria-label="Share on Google Plus"><i class="fa fa-google-plus"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right facebook-sharing-link sharing-link" data-sharing="facebook" aria-label="Share on Facebook"><i class="fa fa-facebook"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right twitter-sharing-link sharing-link" data-sharing="twitter" aria-label="Share on Twitter"><i class="fa fa-twitter"></i></a>
+    
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../" >Cassandra</a>
+    </h1>
+</div>
+
+            <div class="page-wrapper" tabindex="-1">
+                <div class="page-inner">
+                
+                
+                    <section class="normal" id="section-gitbook_2861">
+                    
+                        <h1 id="bloom-filter">Bloom Filter实现</h1>
+<p><img src="images/bloomfilter_hierarchy.png" alt="Bloom Filter 类结构图"></p>
+<h2 id="bloomfilter">创建BloomFilter</h2>
+<p>根据CFMetaData中的bloomFilterFpChance和Key的个数，计算出<code>BloomSpecification</code>从而创建BloomFilter． FilterFactory创建BloomFilter, 对于OffHeap内存的创建，修改, 获取，参考OffHeap一节</p>
+<pre><code class="lang-java"> <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BloomSpecification</span>
+ </span>{
+      <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> K; <span class="hljs-comment">// number of hash functions.</span>
+      <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> bucketsPerElement;
+ }
+
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> IFilter <span class="hljs-title">getFilter</span><span class="hljs-params">(<span class="hljs-keyword">long</span> numElements, <span class="hljs-keyword">double</span> maxFalsePosProbability, <span class="hljs-keyword">boolean</span> offheap)</span>
+ </span>{
+      <span class="hljs-keyword">int</span> bucketsPerElement = BloomCalculations.maxBucketsPerElement(numElements);
+      BloomCalculations.BloomSpecification spec = BloomCalculations.computeBloomSpec(bucketsPerE  lement, maxFalsePosProbability);
+      <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">createFilter</span><span class="hljs-params">(spec.K, numElements, spec.bucketsPerElement, offheap)</span></span>;
+ }
+
+ <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> IFilter <span class="hljs-title">createFilter</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash, <span class="hljs-keyword">long</span> numElements, <span class="hljs-keyword">int</span> bucketsPer, <span class="hljs-keyword">boolean</span> offheap)</span>
+ </span>{
+     <span class="hljs-keyword">long</span> numBits = (numElements * bucketsPer) + BITSET_EXCESS;
+     IBitSet bitset = offheap ? <span class="hljs-keyword">new</span> OffHeapBitSet(numBits) : <span class="hljs-keyword">new</span> OpenBitSet(numBits);
+     <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">Murmur3BloomFilter</span><span class="hljs-params">(hash, bitset)</span></span>;
+ }
+</code></pre>
+<h2 id="keyhashoffheapbitset">对每个Key计算hash值，存入OffHeapBitSet.</h2>
+<p> <img src="images/BloomFilterAddCallStack.png" alt="BloomFilter add callstack"></p>
+<p>　1.　在创建IndexSummary时，Filter.db不存在时<br/>
+　2.　在往Cassandra写入数据时．</p>
+<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">add</span><span class="hljs-params">(ByteBuffer key)</span>
+ </span>{
+      <span class="hljs-keyword">long</span>[] indexes = indexes(key);
+      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; hashCount; i++)
+      {
+          bitset.set(indexes[i]);
+      }
+ }
+
+ <span class="hljs-comment">// note that this method uses the threadLocal that may be longer than hashCount</span>
+ <span class="hljs-comment">// to avoid generating a lot of garbage since stack allocation currently does not support stores</span>
+ <span class="hljs-comment">// (CASSANDRA-6609). it returns the array so that the caller does not need to perform</span>
+ <span class="hljs-comment">// a second threadlocal lookup.</span>
+ <span class="hljs-keyword">private</span> <span class="hljs-keyword">long</span>[] indexes(ByteBuffer key)
+  {
+       <span class="hljs-keyword">long</span>[] indexes = reusableIndexes.get();
+       hash(key, key.position(), key.remaining(), <span class="hljs-number">0</span>L, indexes);
+       setIndexes(indexes[<span class="hljs-number">0</span>], indexes[<span class="hljs-number">1</span>], hashCount, bitset.capacity(), indexes);
+       <span class="hljs-keyword">return</span> indexes;
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setIndexes</span><span class="hljs-params">(<span class="hljs-keyword">long</span> base, <span class="hljs-keyword">long</span> inc, <span class="hljs-keyword">int</span> count, <span class="hljs-keyword">long</span> max, <span class="hljs-keyword">long</span>[] results)</span>
+  </span>{
+      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; count; i++)
+      {
+          results[i] = FBUtilities.abs(base % max);
+          base += inc;
+      }
+  }
+</code></pre>
+<h2 id="bloomfilter">查询时对BloomFilter的使用</h2>
+<p>　<img src="images/BloomFilterPresentCallStack.png" alt="BloomFilter ispresent callstack"></p>
+<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isPresent</span><span class="hljs-params">(ByteBuffer key)</span>
+ </span>{
+     <span class="hljs-keyword">long</span>[] indexes = indexes(key);
+     <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; hashCount; i++)
+     {
+         <span class="hljs-keyword">if</span> (!bitset.get(indexes[i]))
+         {
+             <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+         }
+     }
+     <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+ }
+</code></pre>
+<h2 id="filterdb">对Filter.db的存取</h2>
+<p><img src="images/BloomFilterSerializeStack.png" alt="BloomFilter serialize"></p>
+<p>从图中可以看到对Filter.db的存储是在每个SStable关闭的时候</p>
+<p><img src="images/BloomFilterDescrializeStack.png" alt="BloomFilter serialize"></p>
+<p>在打开每个SStable的时候，Filter.db存在，CFMetaData中的bloomFilterFPChance没有改变，就会load Filter.db到BloomFilter.</p>
+
+                    
+                    </section>
+                
+                
+                </div>
+            </div>
+        </div>
+
+        
+        <a href="../cassandra/columnfamilystore.html" class="navigation navigation-prev " aria-label="Previous page: 创建ColumnFamilyStore"><i class="fa fa-angle-left"></i></a>
+        
+        
+        <a href="../cassandra/cassandra_cache.html" class="navigation navigation-next " aria-label="Next page: Cassandra Cache"><i class="fa fa-angle-right"></i></a>
+        
+    </div>
+</div>
+
+        
+<script src="../gitbook/app.js"></script>
+
+    
+    <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+    
+    <script src="../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    
+
+<script>
+require(["gitbook"], function(gitbook) {
+    var config = {"fontSettings":{"theme":null,"family":"sans","size":2}};
+    gitbook.start(config);
+});
+</script>
+
+        
+    </body>
+    
+</html>
