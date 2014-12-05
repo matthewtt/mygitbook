@@ -33,7 +33,7 @@
 
 
         
-    <div class="book"  data-level="2.3" data-basepath=".." data-revision="1417684833363">
+    <div class="book"  data-level="2.3" data-basepath=".." data-revision="1417758529365">
     
 
 <div class="book-summary">
@@ -255,14 +255,89 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_2862">
+                    <section class="normal" id="section-gitbook_4760">
                     
                         <h1 id="cassandra-cache">Cassandra Cache</h1>
-<p>cache由三种类型，KeyCache，RowCache，CounterCache, 默认只进行KeyCache. 在初始化ColumnFamilyStore时，会load已经save的KeyCache
-```java
-//ColumnFamilyStore
-if (caching.keyCache.isEnabled())
-    CacheService.instance.keyCache.loadSaved(this);</p>
+<h2 id="cache">Cache初始化</h2>
+<p>Cache由三种类型，KeyCache，RowCache，CounterCache, 默认KeyCache开启, 类结构图
+<img src="images/CacheClassStructure.png" alt="ICache 类图"></p>
+<p>Cache接口和Map接口类似, 增加capacity显示容量, 在put和remove时不返回Value, 避免在SerializingCache中deserialize在offheap的Value数据．</p>
+<p><img src="images/CacheClassHierarchy.png" alt="ICache 层级关系"></p>
+<h3 id="keycache--countercache-">KeyCache 和 CounterCache 初始化</h3>
+<p>KeyCache 和 CounterCache的代码类似，此只列出KeyCache</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> AutoSavingCache&lt;KeyCacheKey, RowIndexEntry&gt; initKeyCache()
+{
+    <span class="hljs-keyword">long</span> keyCacheInMemoryCapacity = DatabaseDescriptor.getKeyCacheSizeInMB() * <span class="hljs-number">1024</span> * <span class="hljs-number">1024</span>;
+    ICache&lt;KeyCacheKey, RowIndexEntry&gt; kc = ConcurrentLinkedHashCache.create(keyCacheInMemoryCapacity);
+    AutoSavingCache&lt;KeyCacheKey, RowIndexEntry&gt; keyCache = <span class="hljs-keyword">new</span> AutoSavingCache&lt;&gt;(
+                                                           kc,
+                                                           CacheType.KEY_CACHE,
+                                                           <span class="hljs-keyword">new</span> KeyCacheSerializer());
+    <span class="hljs-keyword">int</span> keyCacheKeysToSave = DatabaseDescriptor.getKeyCacheKeysToSave();
+    keyCache.scheduleSaving(DatabaseDescriptor.getKeyCacheSavePeriod(), keyCacheKeysToSave);
+    <span class="hljs-keyword">return</span> keyCache;
+}
+</code></pre>
+<p>ConcurrentLinkedHashCache的创建</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ConcurrentLinkedHashCache&lt;K, V&gt; create(<span class="hljs-keyword">long</span> weightedCapacity)
+{
+    EntryWeigher&lt;K, V&gt; entryWeigher = <span class="hljs-keyword">new</span> EntryWeigher&lt;K, V&gt;()
+    {
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">weightOf</span><span class="hljs-params">(K key, V value)</span>
+        </span>{
+            <span class="hljs-keyword">long</span> size = key.unsharedHeapSize() + value.unsharedHeapSize();
+            <span class="hljs-keyword">return</span> (<span class="hljs-keyword">int</span>) size;
+        }
+    };
+    ConcurrentLinkedHashMap&lt;K, V&gt; map = <span class="hljs-keyword">new</span> ConcurrentLinkedHashMap.Builder&lt;K, V&gt;()
+                                        .weigher(entryWeigher)
+                                        .maximumWeightedCapacity(weightedCapacity)
+                                        .concurrencyLevel(DEFAULT_CONCURENCY_LEVEL)
+                                        .build();
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ConcurrentLinkedHashCache&lt;&gt;(map);
+}
+</code></pre>
+<h3 id="rowcache-">RowCache 初始化</h3>
+<p>RowCache初始化唯一的不同就是Cache的实现换成SerializingCache</p>
+<pre><code class="lang-java">ICache&lt;RowCacheKey, IRowCacheEntry&gt; rc = <span class="hljs-keyword">new</span> SerializingCacheProvider().create(rowCacheInMemoryCapacity);
+
+<span class="hljs-keyword">public</span> ICache&lt;RowCacheKey, IRowCacheEntry&gt; create(<span class="hljs-keyword">long</span> capacity)
+{
+    <span class="hljs-keyword">return</span> SerializingCache.create(capacity, <span class="hljs-keyword">new</span> RowCacheSerializer());
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;K, V&gt; SerializingCache&lt;K, V&gt; create(<span class="hljs-keyword">long</span> weightedCapacity, ISerializer&lt;V&gt; serializer)
+{
+    Weigher&lt;RefCountedMemory&gt; weigher = <span class="hljs-keyword">new</span> Weigher&lt;RefCountedMemory&gt;()
+    {
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">weightOf</span><span class="hljs-params">(RefCountedMemory value)</span>
+        </span>{
+            <span class="hljs-keyword">long</span> size = value.size();
+            <span class="hljs-keyword">return</span> (<span class="hljs-keyword">int</span>) size;
+        }
+    };
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> SerializingCache&lt;&gt;(weightedCapacity, weigher, serializer);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-title">SerializingCache</span><span class="hljs-params">(<span class="hljs-keyword">long</span> capacity, Weigher&lt;RefCountedMemory&gt; weigher, ISerializer&lt;V&gt; serializer)</span>
+</span>{
+    <span class="hljs-keyword">this</span>.serializer = serializer;
+    EvictionListener&lt;K,RefCountedMemory&gt; listener = <span class="hljs-keyword">new</span> EvictionListener&lt;K, RefCountedMemory&gt;()
+    {
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onEviction</span><span class="hljs-params">(K k, RefCountedMemory mem)</span>
+        </span>{
+            mem.unreference();
+        }
+    };
+    <span class="hljs-keyword">this</span>.map = <span class="hljs-keyword">new</span> ConcurrentLinkedHashMap.Builder&lt;K, RefCountedMemory&gt;()
+               .weigher(weigher)
+               .maximumWeightedCapacity(capacity)
+               .concurrencyLevel(DEFAULT_CONCURENCY_LEVEL)
+               .listener(listener)
+               .build();
+}
+</code></pre>
+<h1 id="cache">Cache使用</h1>
 
                     
                     </section>
