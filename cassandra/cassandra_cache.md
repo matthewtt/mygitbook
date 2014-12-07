@@ -87,6 +87,12 @@ private SerializingCache(long capacity, Weigher<RefCountedMemory> weigher, ISeri
 ```
 
 #Cache使用
+###put操作
+![put 调用关系](images/CachePutStack.png)
+可以看到除了三个缓存类型都会执行装载文件中的缓存数据，Counter和Key都会执行插入操作, RowCache没有执行插入操作，仅仅执行replace操作。
+
+
+
 
 
 

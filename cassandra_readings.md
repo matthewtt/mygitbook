@@ -9,8 +9,9 @@
 static void applyConfig(Config config) throws ConfigurationException{
     List<KSMetaData> systemKeyspaces = Arrays.asList(KSMetaData.systemKeyspace());
     assert systemKeyspaces.size() == Schema.systemKeyspaceNames.size();
+    //将每个KSMetaData下面的CFMetaData的UUID存入cfIdMap,
+    //KSMetaData存入keyspaces
     for (KSMetaData ksmd : systemKeyspaces)
-        //将每个KSMetaData下面的CFMetaData的UUID存入cfIdMap, KSMetaData存入keyspaces
         Schema.instance.load(ksmd);
 }
 ```
@@ -18,9 +19,12 @@ static void applyConfig(Config config) throws ConfigurationException{
 Schema类结构
 
 ```java
-NonBlockingHashMap<String, KSMetaData> keyspaces; //ksName --> KSMataData
-NonBlockingHashMap<String, Keyspace> keyspaceInstances; //ksName --> Keyspace
-ConcurrentBiMap<Pair<String, String>, UUID> cfIdMap; //Pair<ksName, cfName> --> cfId
+//ksName --> KSMataData
+NonBlockingHashMap<String, KSMetaData> keyspaces;
+//ksName --> Keyspace
+NonBlockingHashMap<String, Keyspace> keyspaceInstances;
+//Pair<ksName, cfName> --> cfId
+ConcurrentBiMap<Pair<String, String>, UUID> cfIdMap;
 ```
 
 ##Load keyspaces 和 UDFs
@@ -32,7 +36,7 @@ void setup(){
 }
 
 //DatabaseDescriptor.loadSchemas
-// load kSMetaData, 同时也初始化Keyspace, 存入Schema.keyspaceInstances
+//load kSMetaData, 同时也初始化Keyspace, 存入Schema.keyspaceInstances
 public static void loadSchemas(){
     Schema.instance.load(DefsTables.loadFromKeyspace());
     Schema.instance.updateVersion();
@@ -40,23 +44,25 @@ public static void loadSchemas(){
 ```
 DefsTables类中全是静态方法，在loadFromKeyspace中主要关注
 
-* ColumnFamilyStore创建及查询，查询具体细节参考查询一章
+####ColumnFamilyStore创建及查询，查询具体细节参考查询一章
 
  由于创建ColumnFamilyStore是在Keyspace类中执行，需要先初始化Keyspace, 再对每个ColumnFamily创建相应的ColumnFamilyStore
 
  Keyspace类结构
  ```java
- //包含当前节点的token/identifier. token将会在节点之间gossip传递, 还维持其他节点负载信息柱状统计图
+ //包含当前节点的token/identifier. token将会在节点之间gossip传递,
+ //还维持其他节点负载信息柱状统计图
  KSMetaData metadata;
  OpOrder writeOrder;
- ConcurrentHashMap<UUID, ColumnFamilyStore> columnFamilyStores; //cfId --> ColumnFamilyStore
+ //cfId --> ColumnFamilyStore
+ ConcurrentHashMap<UUID, ColumnFamilyStore> columnFamilyStores;
  AbstractReplicationStrategy replicationStrategy;
  ```
- 初始化
+ Keyspace初始化
  ```java
  private Keyspace(String keyspaceName, boolean loadSSTables){
-        metadata = Schema.instance.getKSMetaData(keyspaceName);//从schema取出KSMetaData
-        createReplicationStrategy(metadata);//创建ReplicationStrategy
+        metadata = Schema.instance.getKSMetaData(keyspaceName);
+        createReplicationStrategy(metadata);
         this.metric = new KeyspaceMetrics(this);
         for (CFMetaData cfm : new ArrayList<CFMetaData>(metadata.cfMetaData().values()))
         {
@@ -69,11 +75,11 @@ DefsTables类中全是静态方法，在loadFromKeyspace中主要关注
   for (ColumnFamilyStore cfs : keyspaceInstance.getColumnFamilyStores())
       cfs.initRowCache();
   ```
-* 对结果的组装
+####对结果的组装
 
 ```java
 public static Collection<KSMetaData> loadFromKeyspace(){
-    //执行查询
+    //查询Keyspace
     List<Row> serializedSchema = SystemKeyspace.serializedSchema(SystemKeyspace.SCHEMA_KEYSPACES_CF);
     List<KSMetaData> keyspaces = new ArrayList<>(serializedSchema.size());
     for (Row row : serializedSchema){
@@ -84,11 +90,35 @@ public static Collection<KSMetaData> loadFromKeyspace(){
     }
     return keyspaces;
 }
+
+//查询Keyspace
+public static List<Row> serializedSchema(String schemaCfName)
+{
+    Token minToken = StorageService.getPartitioner().getMinimumToken();
+    return schemaCFS(schemaCfName).getRangeSlice(new Range<RowPosition>(minToken.minKeyBound(), minToken.maxKeyBound()),
+                                                 null,
+                                                 new IdentityQueryFilter(),
+                                                 Integer.MAX_VALUE,
+                                                 System.currentTimeMillis());
+}
+
 //在KSMetaData中对Row执行反序列化
 public static KSMetaData fromSchema(Row serializedKs, Row serializedCFs, Row serializedUserTypes){
     Map<String, CFMetaData> cfs = deserializeColumnFamilies(serializedCFs);
     UTMetaData userTypes = new UTMetaData(UTMetaData.fromSchema(serializedUserTypes));
     return fromSchema(serializedKs, cfs.values(), userTypes);
+}
+
+//Deserialize only Keyspace attributes without nested ColumnFamilies
+public static KSMetaData fromSchema(Row row, Iterable<CFMetaData> cfms, UTMetaData userTypes)
+{
+    UntypedResultSet.Row result = QueryProcessor.resultify("SELECT * FROM system.schema_keyspaces", row).one();
+    return new KSMetaData(result.getString("keyspace_name"),
+                         AbstractReplicationStrategy.getClass(result.getString("strategy_class")),
+                         fromJsonMap(result.getString("strategy_options")),
+                         result.getBoolean("durable_writes"),
+                         cfms,
+                         userTypes);
 }
 
 //KSMataData结构
