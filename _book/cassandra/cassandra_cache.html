@@ -33,7 +33,7 @@
 
 
         
-    <div class="book"  data-level="2.3" data-basepath=".." data-revision="1417758529365">
+    <div class="book"  data-level="2.3" data-basepath=".." data-revision="1418196246585">
     
 
 <div class="book-summary">
@@ -255,7 +255,7 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_4760">
+                    <section class="normal" id="section-gitbook_13">
                     
                         <h1 id="cassandra-cache">Cassandra Cache</h1>
 <h2 id="cache">Cache初始化</h2>
@@ -338,6 +338,27 @@
 }
 </code></pre>
 <h1 id="cache">Cache使用</h1>
+<h3 id="put">put操作</h3>
+<p><img src="images/CachePutStack.png" alt="put 调用关系">
+可以看到除了三个缓存类型都会执行装载文件中的缓存数据，Counter和Key都会执行插入操作, RowCache没有执行插入操作，仅仅执行replace操作。</p>
+<h3 id="putifabsent-replace">putIfAbsent, replace</h3>
+<p>只在RowCache中使用</p>
+<h3 id="get">get</h3>
+<p>有两种形式，不走统计的使用 InstrumentingCache.getInternal，走统计的使用InstrumentingCache.get</p>
+<pre><code class="lang-java"><span class="hljs-comment">//InstrumentingCache.get代码</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">get</span><span class="hljs-params">(K key)</span>
+</span>{
+    V v = map.get(key);
+    metrics.requests.mark();
+    <span class="hljs-keyword">if</span> (v != <span class="hljs-keyword">null</span>)
+        metrics.hits.mark();
+    <span class="hljs-keyword">return</span> v;
+}
+</code></pre>
+<p><img src="images/CacheGetStack.png" alt="get 调用关系"></p>
+<p>//todo 详细解释</p>
+<h3 id="remove">remove</h3>
+<p><img src="images/CacheRemoveStack.png" alt="remove 调用关系"></p>
 
                     
                     </section>

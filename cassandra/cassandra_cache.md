@@ -91,6 +91,29 @@ private SerializingCache(long capacity, Weigher<RefCountedMemory> weigher, ISeri
 ![put 调用关系](images/CachePutStack.png)
 可以看到除了三个缓存类型都会执行装载文件中的缓存数据，Counter和Key都会执行插入操作, RowCache没有执行插入操作，仅仅执行replace操作。
 
+###putIfAbsent, replace
+只在RowCache中使用
+
+###get
+有两种形式，不走统计的使用 InstrumentingCache.getInternal，走统计的使用InstrumentingCache.get
+```java
+//InstrumentingCache.get代码
+public V get(K key)
+{
+    V v = map.get(key);
+    metrics.requests.mark();
+    if (v != null)
+        metrics.hits.mark();
+    return v;
+}
+```
+![get 调用关系](images/CacheGetStack.png)
+
+//todo 详细解释
+
+###remove
+![remove 调用关系](images/CacheRemoveStack.png)
+
 
 
 

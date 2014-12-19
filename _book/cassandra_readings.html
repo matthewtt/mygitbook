@@ -33,7 +33,7 @@
 
 
         
-    <div class="book"  data-level="1" data-basepath="." data-revision="1417758529365">
+    <div class="book"  data-level="1" data-basepath="." data-revision="1418196246585">
     
 
 <div class="book-summary">
@@ -255,7 +255,7 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_4762">
+                    <section class="normal" id="section-gitbook_15">
                     
                         <h1 id="cassandra-">Cassandra 启动</h1>
 <h2 id="databasedescritor">DatabaseDescritor初始化</h2>
@@ -264,15 +264,19 @@
 <pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">applyConfig</span><span class="hljs-params">(Config config)</span> <span class="hljs-keyword">throws</span> ConfigurationException</span>{
     List&lt;KSMetaData&gt; systemKeyspaces = Arrays.asList(KSMetaData.systemKeyspace());
     <span class="hljs-keyword">assert</span> systemKeyspaces.size() == Schema.systemKeyspaceNames.size();
+    <span class="hljs-comment">//将每个KSMetaData下面的CFMetaData的UUID存入cfIdMap,</span>
+    <span class="hljs-comment">//KSMetaData存入keyspaces</span>
     <span class="hljs-keyword">for</span> (KSMetaData ksmd : systemKeyspaces)
-        <span class="hljs-comment">//将每个KSMetaData下面的CFMetaData的UUID存入cfIdMap, KSMetaData存入keyspaces</span>
         Schema.instance.load(ksmd);
 }
 </code></pre>
 <p>Schema类结构</p>
-<pre><code class="lang-java">NonBlockingHashMap&lt;String, KSMetaData&gt; keyspaces; <span class="hljs-comment">//ksName --&gt; KSMataData</span>
-NonBlockingHashMap&lt;String, Keyspace&gt; keyspaceInstances; <span class="hljs-comment">//ksName --&gt; Keyspace</span>
-ConcurrentBiMap&lt;Pair&lt;String, String&gt;, UUID&gt; cfIdMap; <span class="hljs-comment">//Pair&lt;ksName, cfName&gt; --&gt; cfId</span>
+<pre><code class="lang-java"><span class="hljs-comment">//ksName --&gt; KSMataData</span>
+NonBlockingHashMap&lt;String, KSMetaData&gt; keyspaces;
+<span class="hljs-comment">//ksName --&gt; Keyspace</span>
+NonBlockingHashMap&lt;String, Keyspace&gt; keyspaceInstances;
+<span class="hljs-comment">//Pair&lt;ksName, cfName&gt; --&gt; cfId</span>
+ConcurrentBiMap&lt;Pair&lt;String, String&gt;, UUID&gt; cfIdMap;
 </code></pre>
 <h2 id="load-keyspaces--udfs">Load keyspaces 和 UDFs</h2>
 <p>所有的keyspaces存储在system.schema_keyspaces中,ColumnFamily都存储在system.schema_columnfamilies，UTMetaData存储在system.schema_usertypes, UDFs存储在system.schema_functions，在CassandraDaemon.setup中触发。</p>
@@ -282,44 +286,43 @@ ConcurrentBiMap&lt;Pair&lt;String, String&gt;, UUID&gt; cfIdMap; <span class="hl
 }
 
 <span class="hljs-comment">//DatabaseDescriptor.loadSchemas</span>
-<span class="hljs-comment">// load kSMetaData, 同时也初始化Keyspace, 存入Schema.keyspaceInstances</span>
+<span class="hljs-comment">//load kSMetaData, 同时也初始化Keyspace, 存入Schema.keyspaceInstances</span>
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">loadSchemas</span><span class="hljs-params">()</span></span>{
     Schema.instance.load(DefsTables.loadFromKeyspace());
     Schema.instance.updateVersion();
 }
 </code></pre>
 <p>DefsTables类中全是静态方法，在loadFromKeyspace中主要关注</p>
-<ul>
-<li><p>ColumnFamilyStore创建及查询，查询具体细节参考查询一章</p>
-<p>由于创建ColumnFamilyStore是在Keyspace类中执行，需要先初始化Keyspace, 再对每个ColumnFamily创建相应的ColumnFamilyStore</p>
-<p>Keyspace类结构</p>
-<pre><code class="lang-java"><span class="hljs-comment">//包含当前节点的token/identifier. token将会在节点之间gossip传递, 还维持其他节点负载信息柱状统计图</span>
-KSMetaData metadata;
-OpOrder writeOrder;
-ConcurrentHashMap&lt;UUID, ColumnFamilyStore&gt; columnFamilyStores; <span class="hljs-comment">//cfId --&gt; ColumnFamilyStore</span>
-AbstractReplicationStrategy replicationStrategy;
+<h4 id="columnfamilystore">ColumnFamilyStore创建及查询，查询具体细节参考查询一章</h4>
+<p> 由于创建ColumnFamilyStore是在Keyspace类中执行，需要先初始化Keyspace, 再对每个ColumnFamily创建相应的ColumnFamilyStore</p>
+<p> Keyspace类结构</p>
+<pre><code class="lang-java"> <span class="hljs-comment">//包含当前节点的token/identifier. token将会在节点之间gossip传递,</span>
+ <span class="hljs-comment">//还维持其他节点负载信息柱状统计图</span>
+ KSMetaData metadata;
+ OpOrder writeOrder;
+ <span class="hljs-comment">//cfId --&gt; ColumnFamilyStore</span>
+ ConcurrentHashMap&lt;UUID, ColumnFamilyStore&gt; columnFamilyStores;
+ AbstractReplicationStrategy replicationStrategy;
 </code></pre>
-<p>初始化</p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-title">Keyspace</span><span class="hljs-params">(String keyspaceName, <span class="hljs-keyword">boolean</span> loadSSTables)</span></span>{
-      metadata = Schema.instance.getKSMetaData(keyspaceName);<span class="hljs-comment">//从schema取出KSMetaData</span>
-      createReplicationStrategy(metadata);<span class="hljs-comment">//创建ReplicationStrategy</span>
-      <span class="hljs-keyword">this</span>.metric = <span class="hljs-keyword">new</span> KeyspaceMetrics(<span class="hljs-keyword">this</span>);
-      <span class="hljs-keyword">for</span> (CFMetaData cfm : <span class="hljs-keyword">new</span> ArrayList&lt;CFMetaData&gt;(metadata.cfMetaData().values()))
-      {
-          initCf(cfm.cfId, cfm.cfName, loadSSTables);
-      }
-}
-<span class="hljs-comment">//在initCF中创建ColumnFamilyStore</span>
-columnFamilyStores.putIfAbsent(cfId, ColumnFamilyStore.createColumnFamilyStore(<span class="hljs-keyword">this</span>, cfName, loadSSTables));
-<span class="hljs-comment">//在Keyspace.open中对RowCache初始化</span>
-<span class="hljs-keyword">for</span> (ColumnFamilyStore cfs : keyspaceInstance.getColumnFamilyStores())
-    cfs.initRowCache();
+<p> Keyspace初始化</p>
+<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-title">Keyspace</span><span class="hljs-params">(String keyspaceName, <span class="hljs-keyword">boolean</span> loadSSTables)</span></span>{
+        metadata = Schema.instance.getKSMetaData(keyspaceName);
+        createReplicationStrategy(metadata);
+        <span class="hljs-keyword">this</span>.metric = <span class="hljs-keyword">new</span> KeyspaceMetrics(<span class="hljs-keyword">this</span>);
+        <span class="hljs-keyword">for</span> (CFMetaData cfm : <span class="hljs-keyword">new</span> ArrayList&lt;CFMetaData&gt;(metadata.cfMetaData().values()))
+        {
+            initCf(cfm.cfId, cfm.cfName, loadSSTables);
+        }
+  }
+  <span class="hljs-comment">//在initCF中创建ColumnFamilyStore</span>
+  columnFamilyStores.putIfAbsent(cfId, ColumnFamilyStore.createColumnFamilyStore(<span class="hljs-keyword">this</span>, cfName, loadSSTables));
+  <span class="hljs-comment">//在Keyspace.open中对RowCache初始化</span>
+  <span class="hljs-keyword">for</span> (ColumnFamilyStore cfs : keyspaceInstance.getColumnFamilyStores())
+      cfs.initRowCache();
 </code></pre>
-</li>
-<li>对结果的组装</li>
-</ul>
+<h4 id="">对结果的组装</h4>
 <pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Collection&lt;KSMetaData&gt; <span class="hljs-title">loadFromKeyspace</span><span class="hljs-params">()</span></span>{
-    <span class="hljs-comment">//执行查询</span>
+    <span class="hljs-comment">//查询Keyspace</span>
     List&lt;Row&gt; serializedSchema = SystemKeyspace.serializedSchema(SystemKeyspace.SCHEMA_KEYSPACES_CF);
     List&lt;KSMetaData&gt; keyspaces = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;(serializedSchema.size());
     <span class="hljs-keyword">for</span> (Row row : serializedSchema){
@@ -330,11 +333,35 @@ columnFamilyStores.putIfAbsent(cfId, ColumnFamilyStore.createColumnFamilyStore(<
     }
     <span class="hljs-keyword">return</span> keyspaces;
 }
+
+<span class="hljs-comment">//查询Keyspace</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> List&lt;Row&gt; <span class="hljs-title">serializedSchema</span><span class="hljs-params">(String schemaCfName)</span>
+</span>{
+    Token minToken = StorageService.getPartitioner().getMinimumToken();
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">schemaCFS</span><span class="hljs-params">(schemaCfName)</span>.<span class="hljs-title">getRangeSlice</span><span class="hljs-params">(<span class="hljs-keyword">new</span> Range&lt;RowPosition&gt;(minToken.minKeyBound()</span>, minToken.<span class="hljs-title">maxKeyBound</span><span class="hljs-params">()</span>),
+                                                 <span class="hljs-keyword">null</span>,
+                                                 <span class="hljs-keyword">new</span> <span class="hljs-title">IdentityQueryFilter</span><span class="hljs-params">()</span>,
+                                                 Integer.MAX_VALUE,
+                                                 System.<span class="hljs-title">currentTimeMillis</span><span class="hljs-params">()</span>)</span>;
+}
+
 <span class="hljs-comment">//在KSMetaData中对Row执行反序列化</span>
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> KSMetaData <span class="hljs-title">fromSchema</span><span class="hljs-params">(Row serializedKs, Row serializedCFs, Row serializedUserTypes)</span></span>{
     Map&lt;String, CFMetaData&gt; cfs = deserializeColumnFamilies(serializedCFs);
     UTMetaData userTypes = <span class="hljs-keyword">new</span> UTMetaData(UTMetaData.fromSchema(serializedUserTypes));
     <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">fromSchema</span><span class="hljs-params">(serializedKs, cfs.values()</span>, userTypes)</span>;
+}
+
+<span class="hljs-comment">//Deserialize only Keyspace attributes without nested ColumnFamilies</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> KSMetaData <span class="hljs-title">fromSchema</span><span class="hljs-params">(Row row, Iterable&lt;CFMetaData&gt; cfms, UTMetaData userTypes)</span>
+</span>{
+    UntypedResultSet.Row result = QueryProcessor.resultify(<span class="hljs-string">"SELECT * FROM system.schema_keyspaces"</span>, row).one();
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">KSMetaData</span><span class="hljs-params">(result.getString(<span class="hljs-string">"keyspace_name"</span>)</span>,
+                         AbstractReplicationStrategy.<span class="hljs-title">getClass</span><span class="hljs-params">(result.getString(<span class="hljs-string">"strategy_class"</span>)</span>),
+                         <span class="hljs-title">fromJsonMap</span><span class="hljs-params">(result.getString(<span class="hljs-string">"strategy_options"</span>)</span>),
+                         result.<span class="hljs-title">getBoolean</span><span class="hljs-params">(<span class="hljs-string">"durable_writes"</span>)</span>,
+                         cfms,
+                         userTypes)</span>;
 }
 
 <span class="hljs-comment">//KSMataData结构</span>
