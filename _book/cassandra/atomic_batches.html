@@ -1,0 +1,468 @@
+<!DOCTYPE HTML>
+<html lang="en-US" >
+    
+    <head>
+        
+        <meta charset="UTF-8">
+        <title>Atomic Batches | Cassandra</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 1.0.3">
+        <meta name="HandheldFriendly" content="true"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+        
+    
+    
+    
+    <link rel="next" href="../cassandra/gossiper.html" />
+    
+    
+    <link rel="prev" href="../cassandra/README.html" />
+    
+
+        
+    </head>
+    <body>
+        
+        
+<link rel="stylesheet" href="../gitbook/style.css">
+
+
+        
+    <div class="book"  data-level="3.1" data-basepath=".." data-revision="1419501251136">
+    
+
+<div class="book-summary">
+    <div class="book-search">
+        <input type="text" placeholder="Type to search" class="form-control" />
+    </div>
+    <ul class="summary">
+        
+    	
+    	
+    	
+
+        
+
+        
+    
+        
+        <li class="chapter " data-level="0" data-path="index.html">
+            
+                
+                    <a href="../index.html">
+                        <i class="fa fa-check"></i>
+                        
+                         Cassandra Readings
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1" data-path="cassandra_readings.html">
+            
+                
+                    <a href="../cassandra_readings.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.</b>
+                        
+                         Cassandra启动
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2" data-path="cassandra/README.html">
+            
+                
+                    <a href="../cassandra/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.</b>
+                        
+                         Cassandra查询过程
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="2.1" data-path="cassandra/columnfamilystore.html">
+            
+                
+                    <a href="../cassandra/columnfamilystore.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.1.</b>
+                        
+                         创建ColumnFamilyStore
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.2" data-path="cassandra/bloom_filter.html">
+            
+                
+                    <a href="../cassandra/bloom_filter.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.2.</b>
+                        
+                         Bloom Filter实现
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.3" data-path="cassandra/cassandra_cache.html">
+            
+                
+                    <a href="../cassandra/cassandra_cache.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.3.</b>
+                        
+                         Cassandra Cache
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3" data-path="cassandra/README.html">
+            
+                
+                    <a href="../cassandra/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.</b>
+                        
+                         Cassandra写入过程
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter active" data-level="3.1" data-path="cassandra/atomic_batches.html">
+            
+                
+                    <a href="../cassandra/atomic_batches.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.1.</b>
+                        
+                         Atomic Batches
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4" data-path="cassandra/gossiper.html">
+            
+                
+                    <a href="../cassandra/gossiper.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.</b>
+                        
+                         Gossiper
+                    </a>
+                
+            
+            
+        </li>
+    
+
+
+        
+        <li class="divider"></li>
+        <li>
+            <a href="http://www.gitbook.io/" target="blank" class="gitbook-link">Published using GitBook</a>
+        </li>
+        
+    </ul>
+</div>
+
+    <div class="book-body">
+        <div class="body-inner">
+            <div class="book-header">
+    <!-- Actions Left -->
+    <a href="#" class="btn pull-left toggle-summary" aria-label="Toggle summary"><i class="fa fa-align-justify"></i></a>
+    <a href="#" class="btn pull-left toggle-search" aria-label="Toggle search"><i class="fa fa-search"></i></a>
+    
+    <div id="font-settings-wrapper" class="dropdown pull-left">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle font settings"><i class="fa fa-font"></i>
+        </a>
+        <div class="dropdown-menu font-settings">
+    <div class="dropdown-caret">
+        <span class="caret-outer"></span>
+        <span class="caret-inner"></span>
+    </div>
+
+    <div class="buttons">
+        <button type="button" id="reduce-font-size" class="button size-2">A</button>
+        <button type="button" id="enlarge-font-size" class="button size-2">A</button>
+    </div>
+
+    <div class="buttons font-family-list">
+        <button type="button" data-font="0" class="button">Serif</button>
+        <button type="button" data-font="1" class="button">Sans</button>
+    </div>
+
+    <div class="buttons color-theme-list">
+        <button type="button" id="color-theme-preview-0" class="button size-3" data-theme="0">White</button>
+        <button type="button" id="color-theme-preview-1" class="button size-3" data-theme="1">Sepia</button>
+        <button type="button" id="color-theme-preview-2" class="button size-3" data-theme="2">Night</button>
+    </div>
+</div>
+
+    </div>
+
+    <!-- Actions Right -->
+    
+    <div class="dropdown pull-right">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle share dropdown"><i class="fa fa-share-alt"></i>
+        </a>
+        <div class="dropdown-menu font-settings dropdown-left">
+            <div class="dropdown-caret">
+                <span class="caret-outer"></span>
+                <span class="caret-inner"></span>
+            </div>
+            <div class="buttons">
+                <button type="button" data-sharing="twitter" class="button">Twitter</button>
+                <button type="button" data-sharing="google-plus" class="button">Google</button>
+                <button type="button" data-sharing="facebook" class="button">Facebook</button>
+                <button type="button" data-sharing="weibo" class="button">Weibo</button>
+                <button type="button" data-sharing="instapaper" class="button">Instapaper</button>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <a href="#" target="_blank" class="btn pull-right google-plus-sharing-link sharing-link" data-sharing="google-plus" aria-label="Share on Google Plus"><i class="fa fa-google-plus"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right facebook-sharing-link sharing-link" data-sharing="facebook" aria-label="Share on Facebook"><i class="fa fa-facebook"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right twitter-sharing-link sharing-link" data-sharing="twitter" aria-label="Share on Twitter"><i class="fa fa-twitter"></i></a>
+    
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../" >Cassandra</a>
+    </h1>
+</div>
+
+            <div class="page-wrapper" tabindex="-1">
+                <div class="page-inner">
+                
+                
+                    <section class="normal" id="section-gitbook_1387">
+                    
+                        <h1 id="atomic-batches">Atomic Batches</h1>
+<p>Batch允许客户端将多个相关的updates组成一个statement, 如果部分replicas在更新batch中失败，coordinator将会自动hint这些batch. 但是当coordinator在hint这些batch时失败，将会得到部分跟新的batches．</p>
+<p>在之前依靠客户端，通过重新发送batch到不同的coordinator来处理这种情况，因为cassandra的write是幂等的，这种方法通常已经足够．但是当客户端和coordinator同时down掉，尤其是它们在同一个datacenter时,　数据将很难恢复．一些复杂的客户端实现了client-side commitlog来处理这种情况，但很明显由服务端来处理这种情况更为恰当．</p>
+<h2 id="atomic-batches">使用atomic batches</h2>
+<p>从Cassandra1.2开始，Batches默认是atomic. 但是batches的原子性相比于非原子性有30%的性能损失．对于性能要求高的操作使用BEGIN UNLOGGED BATCH，它不会提供原子性保证．同时1.2开始为batch counter updates引入BEGIN COUNTER BATCH. 不同于其他write, couter updates不是idempotent，从batchlog自动replaying batches是不安全的．在同一个partition更新多个counters时，Counter batches 完全是为了改善性能．</p>
+<h3 id="">内部实现</h3>
+<p>Atomic batches使用batchlog表</p>
+<pre><code>CREATE TABLE system.batchlog (
+    id uuid PRIMARY KEY,
+    data blob,
+    version int,
+    written_at timestamp
+) WITH compaction = {};
+</code></pre><p>当写入atomic batch, 首先会序列化batch成data blob到batchlog表.　在batch中的行被成功写入时或则hinted, 删除batchlog entry.</p>
+<h4 id="batchlog">组装写入batchlog表</h4>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">static</span> Mutation <span class="hljs-title">getBatchlogMutationFor</span><span class="hljs-params">(Collection&lt;Mutation&gt; mutations, UUID uuid, <span class="hljs-keyword">int</span> version, <span class="hljs-keyword">long</span> now)</span>
+</span>{
+    ColumnFamily cf = ArrayBackedSortedColumns.factory.create(SystemKeyspace.BatchlogTable);
+    CFRowAdder adder = <span class="hljs-keyword">new</span> CFRowAdder(cf, SystemKeyspace.BatchlogTable.comparator.builder().build(), now);
+    adder.add(<span class="hljs-string">"data"</span>, serializeMutations(mutations, version))
+         .add(<span class="hljs-string">"written_at"</span>, <span class="hljs-keyword">new</span> Date(now / <span class="hljs-number">1000</span>))
+         .add(<span class="hljs-string">"version"</span>, version);
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">Mutation</span><span class="hljs-params">(SystemKeyspace.NAME, UUIDType.instance.decompose(uuid)</span>, cf)</span>;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">syncWriteToBatchlog</span><span class="hljs-params">(Collection&lt;Mutation&gt; mutations, Collection&lt;InetAddress&gt; endpoints, UUID uuid)</span> <span class="hljs-keyword">throws</span> WriteTimeoutException
+</span>{
+    AbstractWriteResponseHandler handler = <span class="hljs-keyword">new</span> WriteResponseHandler(endpoints,
+                                                                    Collections.&lt;InetAddress&gt;emptyList(),
+                                                                    ConsistencyLevel.ONE,
+                                                                    Keyspace.open(SystemKeyspace.NAME),
+                                                                    <span class="hljs-keyword">null</span>,
+                                                                    WriteType.BATCH_LOG);
+    MessageOut&lt;Mutation&gt; message = BatchlogManager.getBatchlogMutationFor(mutations, uuid, MessagingService.current_version)
+                                                  .createMessage();
+    <span class="hljs-keyword">for</span> (InetAddress target : endpoints)
+    {
+        <span class="hljs-keyword">int</span> targetVersion = MessagingService.instance().getVersion(target);
+        <span class="hljs-keyword">if</span> (target.equals(FBUtilities.getBroadcastAddress()) &amp;&amp; OPTIMIZE_LOCAL_REQUESTS)
+        {
+            insertLocal(message.payload, handler);
+        }
+        <span class="hljs-function"><span class="hljs-keyword">else</span> <span class="hljs-title">if</span> <span class="hljs-params">(targetVersion == MessagingService.current_version)</span>
+        </span>{
+            MessagingService.instance().sendRR(message, target, handler, <span class="hljs-keyword">false</span>);
+        }
+        <span class="hljs-keyword">else</span>
+        {
+            MessagingService.instance().sendRR(BatchlogManager.getBatchlogMutationFor(mutations, uuid, targetVersion)
+                                                              .createMessage(),
+                                               target,
+                                               handler,
+                                               <span class="hljs-keyword">false</span>);
+        }
+    }
+    handle.get();
+}
+</code></pre>
+<h4 id="batch-datareplica">发送batch data到replica</h4>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> ReplayWriteResponseHandler <span class="hljs-title">sendSingleReplayMutation</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Mutation mutation, <span class="hljs-keyword">long</span> writtenAt, <span class="hljs-keyword">int</span> ttl)</span>
+</span>{
+    Set&lt;InetAddress&gt; liveEndpoints = <span class="hljs-keyword">new</span> HashSet&lt;&gt;();
+    String ks = mutation.getKeyspaceName();
+    Token tk = StorageService.getPartitioner().getToken(mutation.key());
+    <span class="hljs-keyword">for</span> (InetAddress endpoint : Iterables.concat(StorageService.instance.getNaturalEndpoints(ks, tk),
+                                                StorageService.instance.getTokenMetadata().pendingEndpointsFor(tk, ks)))
+    {
+        <span class="hljs-keyword">if</span> (endpoint.equals(FBUtilities.getBroadcastAddress()))
+            mutation.apply();
+        <span class="hljs-function"><span class="hljs-keyword">else</span> <span class="hljs-title">if</span> <span class="hljs-params">(FailureDetector.instance.isAlive(endpoint)</span>)
+            <span class="hljs-comment">//直接发送到replica, 而非写入hinted表</span>
+            liveEndpoints.<span class="hljs-title">add</span><span class="hljs-params">(endpoint)</span></span>;
+        <span class="hljs-keyword">else</span>
+            <span class="hljs-comment">//写入hints表</span>
+            StorageProxy.writeHintForMutation(mutation, writtenAt, ttl, endpoint);
+    }
+    <span class="hljs-keyword">if</span> (liveEndpoints.isEmpty())
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+    ReplayWriteResponseHandler handler = <span class="hljs-keyword">new</span> ReplayWriteResponseHandler(liveEndpoints);
+    MessageOut&lt;Mutation&gt; message = mutation.createMessage();
+    <span class="hljs-keyword">for</span> (InetAddress endpoint : liveEndpoints)
+    　　<span class="hljs-comment">//直接发送到replica</span>
+        MessagingService.instance().sendRR(message, endpoint, handler, <span class="hljs-keyword">false</span>);
+    <span class="hljs-keyword">return</span> handler;
+}
+</code></pre>
+<h3 id="batch-data-replicahints">如果发送batch data 到replica失败，写入hints表</h3>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">writeHintsForUndeliveredEndpoints</span><span class="hljs-params">(<span class="hljs-keyword">int</span> startFrom)</span>
+</span>{
+    <span class="hljs-keyword">try</span>
+    {
+        <span class="hljs-comment">// Here we deserialize mutations 2nd time from byte buffer.</span>
+        <span class="hljs-comment">// but this is ok, because timeout on batch direct delivery is rare</span>
+        <span class="hljs-comment">// (it can happen only several seconds until node is marked dead)</span>
+        <span class="hljs-comment">// so trading some cpu to keep less objects</span>
+        List&lt;Mutation&gt; replayingMutations = replayingMutations();
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = startFrom; i &lt; replayHandlers.size(); i++)
+        {
+            Mutation undeliveredMutation = replayingMutations.get(i);
+            <span class="hljs-keyword">int</span> ttl = calculateHintTTL(replayingMutations);
+            ReplayWriteResponseHandler handler = replayHandlers.get(i);
+            <span class="hljs-keyword">if</span> (ttl &gt; <span class="hljs-number">0</span> &amp;&amp; handler != <span class="hljs-keyword">null</span>)
+                <span class="hljs-keyword">for</span> (InetAddress endpoint : handler.undelivered)
+                    StorageProxy.writeHintForMutation(undeliveredMutation, writtenAt, ttl, endpoint);
+        }
+    }
+    <span class="hljs-keyword">catch</span> (IOException e)
+    {
+        logger.error(<span class="hljs-string">"Cannot schedule hints for undelivered batch"</span>, e);
+    }
+}
+</code></pre>
+<h3 id="replay-batches">定时replay batches</h3>
+<p>启动schedule线程</p>
+<pre><code class="lang-java"><span class="hljs-comment">//replay task</span>
+Runnable runnable = <span class="hljs-keyword">new</span> WrappedRunnable()
+{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">runMayThrow</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> ExecutionException, InterruptedException
+    </span>{
+        replayAllFailedBatches();
+    }
+};
+batchlogTasks.scheduleWithFixedDelay(runnable, StorageService.RING_DELAY, REPLAY_INTERVAL, TimeUnit.MILLISECONDS);
+</code></pre>
+<p>replayAllFailedBatches执行情况：</p>
+<ol>
+<li>组装RateLimiter</li>
+<li>分页取出batchlog entry</li>
+<li>按页replay batchlog</li>
+<li>force flush 内存中的batchlog tombstones, 执行compaction task清空batchlog space</li>
+</ol>
+
+                    
+                    </section>
+                
+                
+                </div>
+            </div>
+        </div>
+
+        
+        <a href="../cassandra/README.html" class="navigation navigation-prev " aria-label="Previous page: Cassandra写入过程"><i class="fa fa-angle-left"></i></a>
+        
+        
+        <a href="../cassandra/gossiper.html" class="navigation navigation-next " aria-label="Next page: Gossiper"><i class="fa fa-angle-right"></i></a>
+        
+    </div>
+</div>
+
+        
+<script src="../gitbook/app.js"></script>
+
+    
+    <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+    
+    <script src="../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    
+
+<script>
+require(["gitbook"], function(gitbook) {
+    var config = {"fontSettings":{"theme":null,"family":"sans","size":2}};
+    gitbook.start(config);
+});
+</script>
+
+        
+    </body>
+    
+</html>
