@@ -1,0 +1,489 @@
+<!DOCTYPE HTML>
+<html lang="en-US" >
+    
+    <head>
+        
+        <meta charset="UTF-8">
+        <title>Gossiper | Cassandra</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 1.0.3">
+        <meta name="HandheldFriendly" content="true"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+        
+    
+    
+    
+    
+    <link rel="prev" href="../cassandra/atomic_batches.html" />
+    
+
+        
+    </head>
+    <body>
+        
+        
+<link rel="stylesheet" href="../gitbook/style.css">
+
+
+        
+    <div class="book"  data-level="4" data-basepath=".." data-revision="1419501251136">
+    
+
+<div class="book-summary">
+    <div class="book-search">
+        <input type="text" placeholder="Type to search" class="form-control" />
+    </div>
+    <ul class="summary">
+        
+    	
+    	
+    	
+
+        
+
+        
+    
+        
+        <li class="chapter " data-level="0" data-path="index.html">
+            
+                
+                    <a href="../index.html">
+                        <i class="fa fa-check"></i>
+                        
+                         Cassandra Readings
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1" data-path="cassandra_readings.html">
+            
+                
+                    <a href="../cassandra_readings.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.</b>
+                        
+                         Cassandra启动
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2" data-path="cassandra/README.html">
+            
+                
+                    <a href="../cassandra/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.</b>
+                        
+                         Cassandra查询过程
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="2.1" data-path="cassandra/columnfamilystore.html">
+            
+                
+                    <a href="../cassandra/columnfamilystore.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.1.</b>
+                        
+                         创建ColumnFamilyStore
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.2" data-path="cassandra/bloom_filter.html">
+            
+                
+                    <a href="../cassandra/bloom_filter.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.2.</b>
+                        
+                         Bloom Filter实现
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.3" data-path="cassandra/cassandra_cache.html">
+            
+                
+                    <a href="../cassandra/cassandra_cache.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.3.</b>
+                        
+                         Cassandra Cache
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3" data-path="cassandra/README.html">
+            
+                
+                    <a href="../cassandra/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.</b>
+                        
+                         Cassandra写入过程
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.1" data-path="cassandra/atomic_batches.html">
+            
+                
+                    <a href="../cassandra/atomic_batches.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.1.</b>
+                        
+                         Atomic Batches
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter active" data-level="4" data-path="cassandra/gossiper.html">
+            
+                
+                    <a href="../cassandra/gossiper.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.</b>
+                        
+                         Gossiper
+                    </a>
+                
+            
+            
+        </li>
+    
+
+
+        
+        <li class="divider"></li>
+        <li>
+            <a href="http://www.gitbook.io/" target="blank" class="gitbook-link">Published using GitBook</a>
+        </li>
+        
+    </ul>
+</div>
+
+    <div class="book-body">
+        <div class="body-inner">
+            <div class="book-header">
+    <!-- Actions Left -->
+    <a href="#" class="btn pull-left toggle-summary" aria-label="Toggle summary"><i class="fa fa-align-justify"></i></a>
+    <a href="#" class="btn pull-left toggle-search" aria-label="Toggle search"><i class="fa fa-search"></i></a>
+    
+    <div id="font-settings-wrapper" class="dropdown pull-left">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle font settings"><i class="fa fa-font"></i>
+        </a>
+        <div class="dropdown-menu font-settings">
+    <div class="dropdown-caret">
+        <span class="caret-outer"></span>
+        <span class="caret-inner"></span>
+    </div>
+
+    <div class="buttons">
+        <button type="button" id="reduce-font-size" class="button size-2">A</button>
+        <button type="button" id="enlarge-font-size" class="button size-2">A</button>
+    </div>
+
+    <div class="buttons font-family-list">
+        <button type="button" data-font="0" class="button">Serif</button>
+        <button type="button" data-font="1" class="button">Sans</button>
+    </div>
+
+    <div class="buttons color-theme-list">
+        <button type="button" id="color-theme-preview-0" class="button size-3" data-theme="0">White</button>
+        <button type="button" id="color-theme-preview-1" class="button size-3" data-theme="1">Sepia</button>
+        <button type="button" id="color-theme-preview-2" class="button size-3" data-theme="2">Night</button>
+    </div>
+</div>
+
+    </div>
+
+    <!-- Actions Right -->
+    
+    <div class="dropdown pull-right">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle share dropdown"><i class="fa fa-share-alt"></i>
+        </a>
+        <div class="dropdown-menu font-settings dropdown-left">
+            <div class="dropdown-caret">
+                <span class="caret-outer"></span>
+                <span class="caret-inner"></span>
+            </div>
+            <div class="buttons">
+                <button type="button" data-sharing="twitter" class="button">Twitter</button>
+                <button type="button" data-sharing="google-plus" class="button">Google</button>
+                <button type="button" data-sharing="facebook" class="button">Facebook</button>
+                <button type="button" data-sharing="weibo" class="button">Weibo</button>
+                <button type="button" data-sharing="instapaper" class="button">Instapaper</button>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <a href="#" target="_blank" class="btn pull-right google-plus-sharing-link sharing-link" data-sharing="google-plus" aria-label="Share on Google Plus"><i class="fa fa-google-plus"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right facebook-sharing-link sharing-link" data-sharing="facebook" aria-label="Share on Facebook"><i class="fa fa-facebook"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right twitter-sharing-link sharing-link" data-sharing="twitter" aria-label="Share on Twitter"><i class="fa fa-twitter"></i></a>
+    
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../" >Cassandra</a>
+    </h1>
+</div>
+
+            <div class="page-wrapper" tabindex="-1">
+                <div class="page-inner">
+                
+                
+                    <section class="normal" id="section-gitbook_1391">
+                    
+                        <h1 id="gossiper">Gossiper</h1>
+<p>The gossiper is responsible for making sure every node in the system eventually knows important information about every other node&#39;s state, including those that are unreachable or not yet in the cluster when any given state change occurs.</p>
+<h2 id="api">API</h2>
+<p>Information to gossip is wrapped in an ApplicationState object, which is essentially a key/value pair. (See &quot;Data Structures&quot; below for more detail.) The gossiper propagates these to other nodes, where interested classes subscribe to changes via the <code>IEndPointStateChangeSubscriber</code> interface. This provides onRemove, onJoin, onAlive, and onDead methods indicating the obvious things, and onChange for ApplicationState changes. onChange is called once for each ApplicationState. There are two non-obvious properties to this:</p>
+<ol>
+<li>If a node makes multiple changes to a given ApplicationState key, other nodes are guaranteed to see the most recent one but not intermediate ones</li>
+<li>here is no provision for deleting an ApplicationState entirely</li>
+</ol>
+<h2 id="gossiper-implementation">Gossiper implementation</h2>
+<p>Gossip timer task runs every second. During each of these runs the node initiates gossip exchange according to following rules:</p>
+<ol>
+<li>Gossip to random live endpoint (if any)</li>
+<li>Gossip to random unreachable endpoint with certain probability depending on number of unreachable and live nodes</li>
+<li>If the node gossiped to at (1) was not seed, or the number of live nodes is less than number of seeds, gossip to random seed with certain probability depending on number of unreachable, seed and live nodes.</li>
+</ol>
+<p>These rules were developed to ensure that if the network is up, all nodes will eventually know about all other nodes. (Clearly, if each node only contacts one seed and then gossips only to random nodes it knows about, you can have partitions when there are multiple seeds -- each seed will only know about a subset of the nodes in the cluster. Step 3 avoids this and more subtle problems.)</p>
+<p>This way a node initiates gossip exchange with one to three nodes every round (or zero if it is alone in the cluster)</p>
+<h2 id="data-structures">Data structures</h2>
+<p>HeartBeatState</p>
+<p>Consists of generation and version number.Generation stays the same when server is running and grows every time the node is started. Used for distinguishing state information before and after a node restart. Version number is shared with application states and guarantees ordering. Each node has one HeartBeatState associated with it.</p>
+<p>ApplicationState</p>
+<p>Consists of state and version number and represents a state of single &quot;component&quot; or &quot;element&quot; within Cassandra. For instance application state for &quot;load information&quot; could be (5.2, 45), which means that node load is 5.2 at version 45.  Version number is shared by application states and HeartBeatState to guarantee ordering and can only grow.</p>
+<p>EndPointState</p>
+<p>Includes all ApplicationStates and HeartBeatState for certain endpoint (node). EndPointState can include only one of each type of ApplicationState, so if EndPointState already includes, say, load information, new load information will overwrite the old one. ApplicationState version number guarantees that old value will not overwrite new one.</p>
+<p>endPointStateMap</p>
+<p><code>ConcurrentHashMap&lt;InetAddress, EndpointState&gt;()</code></p>
+<p>Internal structure in Gossiper that has EndPointState for all nodes (including itself) that it has heard about.</p>
+<h2 id="gossip-exchange">Gossip Exchange</h2>
+<h3 id="gossipdigestsynmessage">GossipDigestSynMessage</h3>
+<p>Node starting gossip exchange sends GossipDigestSynMessage, which includes a list of gossip digests. A single gossip digest consists of endpoint address, generation number and maximum version that has been seen for the endpoint. In this context, maximum version number is the biggest version number in EndPointState for this endpoint. An example to illustrate this better:</p>
+<p>Suppose that node 10.0.0.1 has following information in its endPointStateMap (remember that endPointStateMap includes also node itself):</p>
+<pre><code>EndPointState 10.0.0.1
+  HeartBeatState: generation 2, version 541662
+  ApplicationState &quot;STATUS&quot;: NORMAL,-5125166994968203647,16
+  ApplicationState: HOST_ID: 054040af-7998-4ae4-861b-28edefe7e64e,2
+  ApplicationState: NET_VERSION: 9,1
+  ApplicationState: RELEASE_VERSION: 3.0.0-SNAPSHOT,4
+  ApplicationState: RPC_ADDRESS: 10.0.0.1,3
+  ApplicationState: TOKENS: -5125166994968203647,-6296082587704969101,15
+  ApplicationState: LOAD: 182792,45
+  ApplicationState: DC: datacenter1,6
+  ApplicationState: RACK: rack1,8
+  ApplicationState: SEVERITY: 0.2557544708251953,541661
+EndPointState 10.0.0.2
+  HeartBeatState: generation 3, version 99
+  ApplicationState &quot;STATUS&quot;: NORMAL,5024364346313730023,16
+  ApplicationState: HOST_ID: 054040af-7998-4ae4-861b-28edefe7dff,2
+  ApplicationState: NET_VERSION: 9,1
+  ApplicationState: RELEASE_VERSION: 3.0.0-SNAPSHOT,4
+  ApplicationState: RPC_ADDRESS: 10.0.0.2,3
+  ApplicationState: TOKENS: 5024364346313730023,6177183088005859152,15
+  ApplicationState: LOAD: 6474848,45
+  ApplicationState: DC: datacenter1,6
+  ApplicationState: RACK: rack1,8
+  ApplicationState: SEVERITY: 0.2557544708251953,98
+EndPointState 10.0.0.3
+  HeartBeatState: generation 4, version 541679
+  ApplicationState &quot;STATUS&quot;: NORMAL,-200858863971061419,16
+  ApplicationState: HOST_ID: 054040af-7998-4ae4-861b-28edefe7e68d,2
+  ApplicationState: NET_VERSION: 9,1
+  ApplicationState: RELEASE_VERSION: 3.0.0-SNAPSHOT,4
+  ApplicationState: RPC_ADDRESS: 10.0.0.3,3
+  ApplicationState: TOKENS: -200858863971061419,-4098422355153952737,15
+  ApplicationState: LOAD: 200099,45
+  ApplicationState: DC: datacenter1,6
+  ApplicationState: RACK: rack1,8
+  ApplicationState: SEVERITY: 0.2557544708251953,541678
+EndPointState 10.0.0.4
+  HeartBeatState: generation 1, version 11
+  ApplicationState &quot;STATUS&quot;: NORMAL,3991949776101693449,4
+  ApplicationState: HOST_ID: 054040af-7998-4ae4-861b-28edefe7e64e,2
+  ApplicationState: NET_VERSION: 9,1
+  ApplicationState: RELEASE_VERSION: 3.0.0-SNAPSHOT,3
+  ApplicationState: RPC_ADDRESS: 10.0.0.4,3
+  ApplicationState: TOKENS: 3991949776101693449,7578276156139136231,5
+  ApplicationState: LOAD: 182792,6
+  ApplicationState: DC: datacenter1,7
+  ApplicationState: RACK: rack1,8
+  ApplicationState: SEVERITY: 0.2557544708251953,9
+</code></pre><p>In this case max version number for these endpoints are 541662, 99, 541679 and 11 respectively. A gossip digest for endpoint 10.0.0.2 would be &quot;10.0.0.2:3:99&quot; and essentially says &quot;AFAIK endpoint 10.0.0.2 is running generation 3 and maximum version is 99&quot;. When the node sends GossipDigestSynMessage, there will be exactly one gossip digest per known endpoint. That is, in this case GossipDigestSynMessage contents would be: &quot;10.0.0.1:2:541662 10.0.0.2:3:99 10.0.0.3:4:541679 10.0.0.4:1:11&quot;. HeartBeatState version number is not necessarily always the biggest, but that is the most common situation by far.</p>
+<h4 id="main-code-pointers">Main code pointers:</h4>
+<pre><code>Gossiper.GossipTimerTask.run: Main gossiper loop
+Gossiper.makeRandomGossipDigest: Constructs gossip digest list to be used in GossipDigestSynMessage
+Gossiper.sendGossip
+</code></pre><h3 id="gossipdigestackmessage">GossipDigestAckMessage</h3>
+<p>A node receiving GossipDigestSynMessage will examine it and reply with GossipDigestAckMessage, which includes <em>two</em> parts: gossip digest list and endpoint state list. From the gossip digest list arriving in GossipDigestSynMessage we will know for each endpoint whether the sending node has newer or older information than we do. An example to illustrate this:</p>
+<p>Suppose that we&#39;re now in node 10.0.0.2 and our endPointState is as follows:</p>
+<pre><code>EndPointState 10.0.0.1
+  HeartBeatState: generation 2, version 67
+  ApplicationState &quot;STATUS&quot;: NORMAL,-5125166994968203647,16
+  ApplicationState: HOST_ID: 054040af-7998-4ae4-861b-28edefe7e64e,2
+  ApplicationState: NET_VERSION: 9,1
+  ApplicationState: RELEASE_VERSION: 3.0.0-SNAPSHOT,4
+  ApplicationState: RPC_ADDRESS: 10.0.0.1,3
+  ApplicationState: TOKENS: -5125166994968203647,-6296082587704969101,15
+  ApplicationState: LOAD: 1827, 32
+  ApplicationState: DC: datacenter1,6
+  ApplicationState: RACK: rack1,8
+  ApplicationState: SEVERITY: 0.2557544708251953,66
+EndPointState 10.0.0.2
+  HeartBeatState: generation 3, version 512
+  ApplicationState &quot;STATUS&quot;: NORMAL,5024364346313730023,16
+  ApplicationState: HOST_ID: 054040af-7998-4ae4-861b-28edefe7dff,2
+  ApplicationState: NET_VERSION: 9,1
+  ApplicationState: RELEASE_VERSION: 3.0.0-SNAPSHOT,4
+  ApplicationState: RPC_ADDRESS: 10.0.0.2,3
+  ApplicationState: TOKENS: 5024364346313730023,6177183088005859152,15
+  ApplicationState: LOAD: 647004848,511
+  ApplicationState: DC: datacenter1,6
+  ApplicationState: RACK: rack1,8
+  ApplicationState: SEVERITY: 0.2557544708251953,98
+EndPointState 10.0.0.3
+  HeartBeatState: generation 4, version 541679
+  ApplicationState &quot;STATUS&quot;: NORMAL,-200858863971061419,16
+  ApplicationState: HOST_ID: 054040af-7998-4ae4-861b-28edefe7e68d,2
+  ApplicationState: NET_VERSION: 9,1
+  ApplicationState: RELEASE_VERSION: 3.0.0-SNAPSHOT,4
+  ApplicationState: RPC_ADDRESS: 10.0.0.3,3
+  ApplicationState: TOKENS: -200858863971061419,-4098422355153952737,15
+  ApplicationState: LOAD: 200099,45
+  ApplicationState: DC: datacenter1,6
+  ApplicationState: RACK: rack1,8
+  ApplicationState: SEVERITY: 0.2557544708251953,541678
+</code></pre><p>Remember that the arriving gossip digest list is: &quot;10.0.0.1:2:541662 10.0.0.2:3:99 10.0.0.3:4:541679 10.0.0.4:1:11&quot;. When the receiving end is handling this, following steps are done:</p>
+<h4 id="sort-gossip-digest-list">Sort gossip digest list</h4>
+<p>Sort gossip digest list according to the difference in max version number between sender&#39;s digest and our own information in descending order. That is, handle those digests first that differ mostly in version number. Number of endpoint information that fits in one gossip message is limited. This step is to guarantee that we favor sending information about nodes where information difference is biggest (sending node has very old information compared to us).</p>
+<p>Examine gossip digest list</p>
+<h2 id="subscriber">Subscriber</h2>
+<h2 id="statuschange">StatusChange</h2>
+<pre><code class="lang-java"><span class="hljs-keyword">enum</span> ApplicationState
+{
+    STATUS,
+    LOAD,
+    SCHEMA,
+    DC,
+    RACK,
+    RELEASE_VERSION,
+    REMOVAL_COORDINATOR,
+    INTERNAL_IP,
+    RPC_ADDRESS,
+    SEVERITY,
+    NET_VERSION,
+    HOST_ID,
+    TOKENS
+}
+</code></pre>
+<p>STATUS取值:</p>
+<pre><code class="lang-java"> String STATUS_BOOTSTRAPPING = <span class="hljs-string">"BOOT"</span>;
+ String STATUS_NORMAL = <span class="hljs-string">"NORMAL"</span>;
+ String STATUS_LEAVING = <span class="hljs-string">"LEAVING"</span>;
+ String STATUS_LEFT = <span class="hljs-string">"LEFT"</span>;
+ String STATUS_MOVING = <span class="hljs-string">"MOVING"</span>;
+ String REMOVING_TOKEN = <span class="hljs-string">"removing"</span>;
+ String REMOVED_TOKEN = <span class="hljs-string">"removed"</span>;
+ String HIBERNATE = <span class="hljs-string">"hibernate"</span>;
+</code></pre>
+
+                    
+                    </section>
+                
+                
+                </div>
+            </div>
+        </div>
+
+        
+        <a href="../cassandra/atomic_batches.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: Atomic Batches"><i class="fa fa-angle-left"></i></a>
+        
+        
+    </div>
+</div>
+
+        
+<script src="../gitbook/app.js"></script>
+
+    
+    <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+    
+    <script src="../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    
+
+<script>
+require(["gitbook"], function(gitbook) {
+    var config = {"fontSettings":{"theme":null,"family":"sans","size":2}};
+    gitbook.start(config);
+});
+</script>
+
+        
+    </body>
+    
+</html>

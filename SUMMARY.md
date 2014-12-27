@@ -6,6 +6,7 @@
    * [创建ColumnFamilyStore](cassandra/columnfamilystore.md)
    * [Bloom Filter实现](cassandra/bloom_filter.md)
    * [Cassandra Cache](cassandra/cassandra_cache.md)
-* [Cassandra写入过程](cassandra/README)
+* [Cassandra写入过程](cassandra/README.md)
+   * [Atomic Batches](cassandra/atomic_batches.md)
 * [Gossiper](cassandra/gossiper.md)
 
