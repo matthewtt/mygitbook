@@ -21,7 +21,7 @@ This way a node initiates gossip exchange with one to three nodes every round (o
 
 HeartBeatState
 
-Consists of generation and version number.Generation stays the same when server is running and grows every time the node is started. Used for distinguishing state information before and after a node restart. Version number is shared with application states and guarantees ordering. Each node has one HeartBeatState associated with it.
+Consists of generation and version number. Generation stays the same when server is running and grows every time the node is started. Used for distinguishing state information before and after a node restart. Version number is shared with application states and guarantees ordering. Each node has one HeartBeatState associated with it.
 
 ApplicationState
 
@@ -76,7 +76,7 @@ EndPointState 10.0.0.3
   ApplicationState: RELEASE_VERSION: 3.0.0-SNAPSHOT,4
   ApplicationState: RPC_ADDRESS: 10.0.0.3,3
   ApplicationState: TOKENS: -200858863971061419,-4098422355153952737,15
-  ApplicationState: LOAD: 200099,45
+  ApplicationState: LOAD: 200000099,541675
   ApplicationState: DC: datacenter1,6
   ApplicationState: RACK: rack1,8
   ApplicationState: SEVERITY: 0.2557544708251953,541678
@@ -98,17 +98,17 @@ In this case max version number for these endpoints are 541662, 99, 541679 and 1
 
 ####Main code pointers:
 ```
-Gossiper.GossipTimerTask.run: Main gossiper loop
-Gossiper.makeRandomGossipDigest: Constructs gossip digest list to be used in GossipDigestSynMessage
-Gossiper.sendGossip
+Gossiper.GossipTask.run: Main gossiper loop
+Gossiper.makeRandomGossipDigest: Constructs gossip digest list to be used in the GossipDigestSyn message
+Gossiper.sendGossip, choose random endpoint to send GossipDigestSyn
 ```
 ###GossipDigestAckMessage
-A node receiving GossipDigestSynMessage will examine it and reply with GossipDigestAckMessage, which includes _two_ parts: gossip digest list and endpoint state list. From the gossip digest list arriving in GossipDigestSynMessage we will know for each endpoint whether the sending node has newer or older information than we do. An example to illustrate this:
+A node receiving GossipDigestSynMessage will examine it and reply with GossipDigestAckMessage, which includes two parts: gossip digest list and endpoint state list. From the gossip digest list arriving in GossipDigestSynMessage we will know for each endpoint whether the sending node has newer or older information than we do. An example to illustrate this:
 
 Suppose that we're now in node 10.0.0.2 and our endPointState is as follows:
 ```
 EndPointState 10.0.0.1
-  HeartBeatState: generation 2, version 67
+  HeartBeatState: generation 2, version 540001
   ApplicationState "STATUS": NORMAL,-5125166994968203647,16
   ApplicationState: HOST_ID: 054040af-7998-4ae4-861b-28edefe7e64e,2
   ApplicationState: NET_VERSION: 9,1
@@ -118,7 +118,7 @@ EndPointState 10.0.0.1
   ApplicationState: LOAD: 1827, 32
   ApplicationState: DC: datacenter1,6
   ApplicationState: RACK: rack1,8
-  ApplicationState: SEVERITY: 0.2557544708251953,66
+  ApplicationState: SEVERITY: 0.2557544708251953,540000
 EndPointState 10.0.0.2
   HeartBeatState: generation 3, version 512
   ApplicationState "STATUS": NORMAL,5024364346313730023,16
@@ -132,17 +132,17 @@ EndPointState 10.0.0.2
   ApplicationState: RACK: rack1,8
   ApplicationState: SEVERITY: 0.2557544708251953,98
 EndPointState 10.0.0.3
-  HeartBeatState: generation 4, version 541679
+  HeartBeatState: generation 4, version 541660
   ApplicationState "STATUS": NORMAL,-200858863971061419,16
   ApplicationState: HOST_ID: 054040af-7998-4ae4-861b-28edefe7e68d,2
   ApplicationState: NET_VERSION: 9,1
   ApplicationState: RELEASE_VERSION: 3.0.0-SNAPSHOT,4
   ApplicationState: RPC_ADDRESS: 10.0.0.3,3
   ApplicationState: TOKENS: -200858863971061419,-4098422355153952737,15
-  ApplicationState: LOAD: 200099,45
+  ApplicationState: LOAD: 20099,541659
   ApplicationState: DC: datacenter1,6
   ApplicationState: RACK: rack1,8
-  ApplicationState: SEVERITY: 0.2557544708251953,541678
+  ApplicationState: SEVERITY: 0.2557544708251953,541650
 ```
 Remember that the arriving gossip digest list is: "10.0.0.1:2:541662 10.0.0.2:3:99 10.0.0.3:4:541679 10.0.0.4:1:11". When the receiving end is handling this, following steps are done:
 
@@ -150,7 +150,24 @@ Remember that the arriving gossip digest list is: "10.0.0.1:2:541662 10.0.0.2:3:
 
 Sort gossip digest list according to the difference in max version number between sender's digest and our own information in descending order. That is, handle those digests first that differ mostly in version number. Number of endpoint information that fits in one gossip message is limited. This step is to guarantee that we favor sending information about nodes where information difference is biggest (sending node has very old information compared to us).
 
-Examine gossip digest list
+####Examine gossip digest list
+At this stage we go through the arriving gossip digest list and construct the two parts of GossipDigestAckMessage mentioned above (gossip digest list and endpoint state list). Let us go through the example digest one by one:
+
+10.0.0.1:2:541662 In our own endPointStateMap the generation is the same, so 10.0.0.1 has not rebooted since we have last heard of it. Version number in the digest is bigger than our max version number (540001 < 541662), so we have to ask the sender what has happened since version 540001. For this purpose we include a gossip digest 10.0.0.1:2:540001, which says "I know about 10.0.0.1 only until generation 2, version 540001, please tell me anything that is newer than this".
+
+10.0.0.2:3:99 When examining this, we notice that we know more than the sender about 10.0.0.2 (generations match, but our version is bigger 512 > 99). Sender's max version is 99, so we look for any states that are newer than this. As we can see from the endPointStateMap, there are two: ApplicationState: LOAD: 647004848,511 and and HeartBeatState(512). We send this ApplicationState to the sender. Please note that in this case we are not sending digests, as digest only tells the maximum version number. In this case we already know that there is difference, so we will send full ApplicationStates.
+
+10.0.0.3:3:541679 In this case generations do not match. Our generation is smaller than the arriving, so 10.0.0.3 must have rebooted. We will ask all data from the sender for generation 3 starting from smallest version number 0. That is, we insert gossip digest 10.0.0.3:1259912238:0 to the reply.
+
+10.0.0.4:1:11 We do not know anything about this endpoint, so we proceed in the same manner as 10.0.0.3 and ask for all information. Insert digest 10.0.0.4:1:0 to the reply.
+
+At this point we have constructed GossipDigestAckMessage, which includes following information:
+```
+10.0.0.1:2:540001
+10.0.0.3:3:0
+10.0.0.4:1:0
+10.0.0.2:[ ApplicationState: LOAD: 647004848,511], [ HeartBeatState: generation 3, version 512]
+```
 ##Subscriber
 
 ##StatusChange
