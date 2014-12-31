@@ -4,7 +4,7 @@ Batch允许客户端将多个相关的updates组成一个statement, 如果部分
 在之前依靠客户端，通过重新发送batch到不同的coordinator来处理这种情况，因为cassandra的write是幂等的，这种方法通常已经足够．但是当客户端和coordinator同时down掉，尤其是它们在同一个datacenter时,　数据将很难恢复．一些复杂的客户端实现了client-side commitlog来处理这种情况，但很明显由服务端来处理这种情况更为恰当．
 
 ##使用atomic batches
-从Cassandra1.2开始，Batches默认是atomic. 但是batches的原子性相比于非原子性有30%的性能损失．对于性能要求高的操作使用BEGIN UNLOGGED BATCH，它不会提供原子性保证．同时1.2开始为batch counter updates引入BEGIN COUNTER BATCH. 不同于其他write, couter updates不是idempotent，从batchlog自动replaying batches是不安全的．在同一个partition更新多个counters时，Counter batches 完全是为了改善性能．
+从Cassandra1.2开始，Batches默认是atomic. 但是batches的原子性相比于非原子性有30%的性能损失．对于性能要求高的操作使用BEGIN UNLOGGED BATCH，它不会提供原子性保证．同时1.2开始为batch counter updates引入BEGIN COUNTER BATCH. 不同于其他write, couter updates不是幂等的，从batchlog自动replaying batches是不安全的．在同一个partition更新多个counters时，Counter batches 完全是为了改善性能．
 
 ###内部实现
 Atomic batches使用batchlog表

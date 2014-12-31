@@ -9,4 +9,6 @@
 * [Cassandra写入过程](cassandra/README.md)
    * [Atomic Batches](cassandra/atomic_batches.md)
 * [Gossiper](cassandra/gossiper.md)
+   * [Node 管理](cassandra/node_decommission.md)
+   * [Streaming](cassandra/streaming.md)
 
