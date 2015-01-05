@@ -4,7 +4,7 @@
     <head>
         
         <meta charset="UTF-8">
-        <title>Bloom Filter实现 | Cassandra</title>
+        <title>Node 管理 | Cassandra</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.0.3">
@@ -18,10 +18,10 @@
     
     
     
-    <link rel="next" href="../cassandra/cassandra_cache.html" />
+    <link rel="next" href="../cassandra/streaming.html" />
     
     
-    <link rel="prev" href="../cassandra/columnfamilystore.html" />
+    <link rel="prev" href="../cassandra/gossiper.html" />
     
 
         
@@ -33,7 +33,7 @@
 
 
         
-    <div class="book"  data-level="2.2" data-basepath=".." data-revision="1420450147146">
+    <div class="book"  data-level="4.1" data-basepath=".." data-revision="1420450147146">
     
 
 <div class="book-summary">
@@ -114,7 +114,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="2.2" data-path="cassandra/bloom_filter.html">
+        <li class="chapter " data-level="2.2" data-path="cassandra/bloom_filter.html">
             
                 
                     <a href="../cassandra/bloom_filter.html">
@@ -206,7 +206,7 @@
                 
     
         
-        <li class="chapter " data-level="4.1" data-path="cassandra/node_decommission.html">
+        <li class="chapter active" data-level="4.1" data-path="cassandra/node_decommission.html">
             
                 
                     <a href="../cassandra/node_decommission.html">
@@ -331,86 +331,128 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_5003">
+                    <section class="normal" id="section-gitbook_5007">
                     
-                        <h1 id="bloom-filter">Bloom Filter实现</h1>
-<p><img src="images/bloomfilter_hierarchy.png" alt="Bloom Filter 类结构图"></p>
-<h2 id="bloomfilter">创建BloomFilter</h2>
-<p>根据CFMetaData中的bloomFilterFpChance和Key的个数，计算出<code>BloomSpecification</code>从而创建BloomFilter． FilterFactory创建BloomFilter, 对于OffHeap内存的创建，修改, 获取，参考OffHeap一节</p>
-<pre><code class="lang-java"> <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BloomSpecification</span>
- </span>{
-      <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> K; <span class="hljs-comment">// number of hash functions.</span>
-      <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> bucketsPerElement;
- }
-
- <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> IFilter <span class="hljs-title">getFilter</span><span class="hljs-params">(<span class="hljs-keyword">long</span> numElements, <span class="hljs-keyword">double</span> maxFalsePosProbability, <span class="hljs-keyword">boolean</span> offheap)</span>
- </span>{
-      <span class="hljs-keyword">int</span> bucketsPerElement = BloomCalculations.maxBucketsPerElement(numElements);
-      BloomCalculations.BloomSpecification spec = BloomCalculations.computeBloomSpec(bucketsPerE  lement, maxFalsePosProbability);
-      <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">createFilter</span><span class="hljs-params">(spec.K, numElements, spec.bucketsPerElement, offheap)</span></span>;
- }
-
- <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> IFilter <span class="hljs-title">createFilter</span><span class="hljs-params">(<span class="hljs-keyword">int</span> hash, <span class="hljs-keyword">long</span> numElements, <span class="hljs-keyword">int</span> bucketsPer, <span class="hljs-keyword">boolean</span> offheap)</span>
- </span>{
-     <span class="hljs-keyword">long</span> numBits = (numElements * bucketsPer) + BITSET_EXCESS;
-     IBitSet bitset = offheap ? <span class="hljs-keyword">new</span> OffHeapBitSet(numBits) : <span class="hljs-keyword">new</span> OpenBitSet(numBits);
-     <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">Murmur3BloomFilter</span><span class="hljs-params">(hash, bitset)</span></span>;
- }
+                        <h1 id="node-boostrap">Node Boostrap</h1>
+<h3 id="gossip-shadow-round">执行Gossip Shadow Round</h3>
+<p>向seeds同步发送空GossipDigestSyn，得到其他节点的Gossip 信息，检查集群中其他节点的状态，节点的状态不能是STATUS_BOOTSTRAPPING，STATUS_LEAVING，STATUS_MOVING</p>
+<h3 id="bootstraptokens">生成bootstrapTokens</h3>
+<p>如果cassandra.yaml没有配置initial_token, 使用Murmur3Partitioner随机生成tokens, 即bootstrapTokens</p>
+<pre><code class="lang-java"><span class="hljs-comment">//随机生成tokens代码</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Collection&lt;Token&gt; <span class="hljs-title">getRandomTokens</span><span class="hljs-params">(TokenMetadata metadata, <span class="hljs-keyword">int</span> numTokens)</span>
+</span>{
+    Set&lt;Token&gt; tokens = <span class="hljs-keyword">new</span> HashSet&lt;Token&gt;(numTokens);
+    <span class="hljs-keyword">while</span> (tokens.size() &lt; numTokens)
+    {
+        Token token = StorageService.getPartitioner().getRandomToken();
+        <span class="hljs-keyword">if</span> (metadata.getEndpoint(token) == <span class="hljs-keyword">null</span>)
+            tokens.add(token);
+    }
+    <span class="hljs-keyword">return</span> tokens;
+}
 </code></pre>
-<h2 id="keyhashoffheapbitset">对每个Key计算hash值，存入OffHeapBitSet.</h2>
-<p> <img src="images/BloomFilterAddCallStack.png" alt="BloomFilter add callstack"></p>
-<p>1.　在创建IndexSummary时，Filter.db不存在时<br/>
-2.　在往Cassandra写入数据时．</p>
-<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">add</span><span class="hljs-params">(ByteBuffer key)</span>
- </span>{
-      <span class="hljs-keyword">long</span>[] indexes = indexes(key);
-      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; hashCount; i++)
-      {
-          bitset.set(indexes[i]);
-      }
- }
+<h3 id="bootstrapperboostrap">BootStrapper.boostrap</h3>
+<p>计算得到stream data的数据源地址</p>
+<pre><code class="lang-java"><span class="hljs-comment">//来自RangeStreamer.getAllRangesWithStrictSourcesFor的代码片段</span>
+<span class="hljs-comment">//当前Active ranges</span>
+TokenMetadata metadataClone = metadata.cloneOnlyTokenMap();
+Multimap&lt;Range&lt;Token&gt;,InetAddress&gt; addressRanges = strat.getRangeAddresses(metadataClone);
 
- <span class="hljs-comment">// note that this method uses the threadLocal that may be longer than hashCount</span>
- <span class="hljs-comment">// to avoid generating a lot of garbage since stack allocation currently does not support stores</span>
- <span class="hljs-comment">// (CASSANDRA-6609). it returns the array so that the caller does not need to perform</span>
- <span class="hljs-comment">// a second threadlocal lookup.</span>
- <span class="hljs-keyword">private</span> <span class="hljs-keyword">long</span>[] indexes(ByteBuffer key)
-  {
-       <span class="hljs-keyword">long</span>[] indexes = reusableIndexes.get();
-       hash(key, key.position(), key.remaining(), <span class="hljs-number">0</span>L, indexes);
-       setIndexes(indexes[<span class="hljs-number">0</span>], indexes[<span class="hljs-number">1</span>], hashCount, bitset.capacity(), indexes);
-       <span class="hljs-keyword">return</span> indexes;
-  }
+<span class="hljs-comment">//加入新node之后 pending ranges</span>
+metadataClone.updateNormalTokens(tokens, address);
+Multimap&lt;Range&lt;Token&gt;,InetAddress&gt; pendingRangeAddresses = strat.getRangeAddresses(metadataClone);
 
-  <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setIndexes</span><span class="hljs-params">(<span class="hljs-keyword">long</span> base, <span class="hljs-keyword">long</span> inc, <span class="hljs-keyword">int</span> count, <span class="hljs-keyword">long</span> max, <span class="hljs-keyword">long</span>[] results)</span>
-  </span>{
-      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; count; i++)
-      {
-          results[i] = FBUtilities.abs(base % max);
-          base += inc;
-      }
-  }
+<span class="hljs-comment">//新节点的ranges desired ranges</span>
+desiredRanges = strat.getAddressRanges(metadataClone).get(address);
+
+<span class="hljs-comment">//Collects the source that will have its range moved to the new node</span>
+Multimap&lt;Range&lt;Token&gt;, InetAddress&gt; rangeSources = ArrayListMultimap.create();
+<span class="hljs-keyword">for</span> (Range&lt;Token&gt; desiredRange : desiredRanges)
+{
+    <span class="hljs-keyword">for</span> (Map.Entry&lt;Range&lt;Token&gt;, Collection&lt;InetAddress&gt;&gt; preEntry : addressRanges.asMap().entrySet())
+    {
+        <span class="hljs-keyword">if</span> (preEntry.getKey().contains(desiredRange))
+        {
+            Set&lt;InetAddress&gt; oldEndpoints = Sets.newHashSet(preEntry.getValue());
+            Set&lt;InetAddress&gt; newEndpoints = Sets.newHashSet(pendingRangeAddresses.get(desiredRange));
+            <span class="hljs-comment">//Due to CASSANDRA-5953 we can have a higher RF then we have endpoints.</span>
+            <span class="hljs-comment">//So we need to be careful to only be strict when endpoints == RF</span>
+            <span class="hljs-keyword">if</span> (oldEndpoints.size() == strat.getReplicationFactor())
+            {
+                <span class="hljs-comment">//oldEndpoints中剩余节点有且只有一个，其数据将会转移到新节点</span>
+                oldEndpoints.removeAll(newEndpoints);
+                <span class="hljs-keyword">assert</span> oldEndpoints.size() == <span class="hljs-number">1</span> : <span class="hljs-string">"Expected 1 endpoint but found "</span> + oldEndpoints.size();
+            }
+            rangeSources.put(desiredRange, oldEndpoints.iterator().next());
+        }
+    }
+}
 </code></pre>
-<h2 id="bloomfilter">查询时对BloomFilter的使用</h2>
-<p>　<img src="images/BloomFilterPresentCallStack.png" alt="BloomFilter ispresent callstack"></p>
-<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isPresent</span><span class="hljs-params">(ByteBuffer key)</span>
+<h1 id="node-decommission">Node Decommission</h1>
+<p>Decommission由nodetool执行，它从集群中删除一个节点.</p>
+<h3 id="storageservicedecommission">StorageService.decommission执行流程</h3>
+<h4 id="tokenmetadatapendingranges">　计算TokenMetadata.pendingRanges</h4>
+<pre><code class="lang-java">　<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">startLeaving</span><span class="hljs-params">()</span>
+　</span>{
+      <span class="hljs-comment">//将Gossiper的status设置成LEAVING</span>
+　    Gossiper.instance.addLocalApplicationState(ApplicationState.STATUS, valueFactory.leaving(getLocalTokens()));
+　    <span class="hljs-comment">//将当前节点加入leavingEndpoints</span>
+      tokenMetadata.addLeavingEndpoint(FBUtilities.getBroadcastAddress());
+      <span class="hljs-comment">//异步更新TokenMetadata.pendingRanges</span>
+      PendingRangeCalculatorService.instance.update();
+　}
+</code></pre>
+<h4 id="systemkeyspace-">对每一个非SystemKeyspace, 计算出集群中的节点来负责接收将被移除节点的数据</h4>
+<pre><code class="lang-java"><span class="hljs-keyword">for</span> (String keyspaceName : Schema.instance.getNonSystemKeyspaces())
+{
+    Multimap&lt;Range&lt;Token&gt;, InetAddress&gt; rangesMM = getChangedRangesForLeaving(keyspaceName, FBUtilities.getBroadcastAddress());
+    rangesToStream.put(keyspaceName, rangesMM);
+}
+</code></pre>
+<h4 id="">数据迁移</h4>
+<ol>
+<li>同步执行replaying batch log, 其可能产生hints</li>
+<li>同步执行streamRanges</li>
+<li>同步执行streamHints</li>
+</ol>
+<pre><code class="lang-java">Future&lt;?&gt; batchlogReplay = BatchlogManager.instance.startBatchlogReplay();
+Future&lt;StreamState&gt; streamSuccess = streamRanges(rangesToStream);
+<span class="hljs-keyword">try</span>{
+    <span class="hljs-comment">// Wait for batch log to complete before streaming hints.</span>
+    batchlogReplay.get();
+}<span class="hljs-keyword">catch</span> (ExecutionException | InterruptedException e){
+    <span class="hljs-function"><span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title">RuntimeException</span><span class="hljs-params">(e)</span></span>;
+}
+Future&lt;StreamState&gt; hintsSuccess = streamHints();
+<span class="hljs-keyword">try</span>{
+    streamSuccess.get();
+    hintsSuccess.get();
+}<span class="hljs-keyword">catch</span> (ExecutionException | InterruptedException e){
+    <span class="hljs-function"><span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title">RuntimeException</span><span class="hljs-params">(e)</span></span>;
+}
+</code></pre>
+<h4 id="">清除状态</h4>
+<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">leaveRing</span><span class="hljs-params">()</span>
  </span>{
-     <span class="hljs-keyword">long</span>[] indexes = indexes(key);
-     <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; hashCount; i++)
-     {
-         <span class="hljs-keyword">if</span> (!bitset.get(indexes[i]))
-         {
-             <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
-         }
-     }
-     <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
- }
+     SystemKeyspace.setBootstrapState(SystemKeyspace.BootstrapState.NEEDS_BOOTSTRAP);
+     tokenMetadata.removeEndpoint(FBUtilities.getBroadcastAddress());
+     PendingRangeCalculatorService.instance.update();
+     Gossiper.instance.addLocalApplicationState(ApplicationState.STATUS, valueFactory.left(getLocalTokens(),Gossiper.computeExpireTime()));
+     <span class="hljs-keyword">int</span> delay = Math.max(RING_DELAY, Gossiper.intervalInMillis * <span class="hljs-number">2</span>);
+     Uninterruptibles.sleepUninterruptibly(delay, TimeUnit.MILLISECONDS);
+}
+Runnable finishLeaving = <span class="hljs-keyword">new</span> Runnable()
+{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span>
+    </span>{
+        shutdownClientServers();
+        Gossiper.instance.stop();
+        MessagingService.instance().shutdown();
+        StageManager.shutdownNow();
+        setMode(Mode.DECOMMISSIONED, <span class="hljs-keyword">true</span>);
+    }
+};
 </code></pre>
-<h2 id="filterdb">对Filter.db的存取</h2>
-<p><img src="images/BloomFilterSerializeStack.png" alt="BloomFilter serialize"></p>
-<p>从图中可以看到对Filter.db的存储是在每个SStable关闭的时候</p>
-<p><img src="images/BloomFilterDescrializeStack.png" alt="BloomFilter serialize"></p>
-<p>在打开每个SStable的时候，Filter.db存在，CFMetaData中的bloomFilterFPChance没有改变，就会load Filter.db到BloomFilter.</p>
 
                     
                     </section>
@@ -421,10 +463,10 @@
         </div>
 
         
-        <a href="../cassandra/columnfamilystore.html" class="navigation navigation-prev " aria-label="Previous page: 创建ColumnFamilyStore"><i class="fa fa-angle-left"></i></a>
+        <a href="../cassandra/gossiper.html" class="navigation navigation-prev " aria-label="Previous page: Gossiper"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../cassandra/cassandra_cache.html" class="navigation navigation-next " aria-label="Next page: Cassandra Cache"><i class="fa fa-angle-right"></i></a>
+        <a href="../cassandra/streaming.html" class="navigation navigation-next " aria-label="Next page: Streaming"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

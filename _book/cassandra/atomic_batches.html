@@ -33,7 +33,7 @@
 
 
         
-    <div class="book"  data-level="3.1" data-basepath=".." data-revision="1419501251136">
+    <div class="book"  data-level="3.1" data-basepath=".." data-revision="1420450147146">
     
 
 <div class="book-summary">
@@ -202,6 +202,44 @@
                 
             
             
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="4.1" data-path="cassandra/node_decommission.html">
+            
+                
+                    <a href="../cassandra/node_decommission.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.1.</b>
+                        
+                         Node 管理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4.2" data-path="cassandra/streaming.html">
+            
+                
+                    <a href="../cassandra/streaming.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.2.</b>
+                        
+                         Streaming
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
         </li>
     
 
@@ -293,13 +331,13 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_1387">
+                    <section class="normal" id="section-gitbook_5002">
                     
                         <h1 id="atomic-batches">Atomic Batches</h1>
 <p>Batch允许客户端将多个相关的updates组成一个statement, 如果部分replicas在更新batch中失败，coordinator将会自动hint这些batch. 但是当coordinator在hint这些batch时失败，将会得到部分跟新的batches．</p>
 <p>在之前依靠客户端，通过重新发送batch到不同的coordinator来处理这种情况，因为cassandra的write是幂等的，这种方法通常已经足够．但是当客户端和coordinator同时down掉，尤其是它们在同一个datacenter时,　数据将很难恢复．一些复杂的客户端实现了client-side commitlog来处理这种情况，但很明显由服务端来处理这种情况更为恰当．</p>
 <h2 id="atomic-batches">使用atomic batches</h2>
-<p>从Cassandra1.2开始，Batches默认是atomic. 但是batches的原子性相比于非原子性有30%的性能损失．对于性能要求高的操作使用BEGIN UNLOGGED BATCH，它不会提供原子性保证．同时1.2开始为batch counter updates引入BEGIN COUNTER BATCH. 不同于其他write, couter updates不是idempotent，从batchlog自动replaying batches是不安全的．在同一个partition更新多个counters时，Counter batches 完全是为了改善性能．</p>
+<p>从Cassandra1.2开始，Batches默认是atomic. 但是batches的原子性相比于非原子性有30%的性能损失．对于性能要求高的操作使用BEGIN UNLOGGED BATCH，它不会提供原子性保证．同时1.2开始为batch counter updates引入BEGIN COUNTER BATCH. 不同于其他write, couter updates不是幂等的，从batchlog自动replaying batches是不安全的．在同一个partition更新多个counters时，Counter batches 完全是为了改善性能．</p>
 <h3 id="">内部实现</h3>
 <p>Atomic batches使用batchlog表</p>
 <pre><code>CREATE TABLE system.batchlog (

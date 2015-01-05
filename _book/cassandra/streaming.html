@@ -1,0 +1,494 @@
+<!DOCTYPE HTML>
+<html lang="en-US" >
+    
+    <head>
+        
+        <meta charset="UTF-8">
+        <title>Streaming | Cassandra</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 1.0.3">
+        <meta name="HandheldFriendly" content="true"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+        
+    
+    
+    
+    
+    <link rel="prev" href="../cassandra/node_decommission.html" />
+    
+
+        
+    </head>
+    <body>
+        
+        
+<link rel="stylesheet" href="../gitbook/style.css">
+
+
+        
+    <div class="book"  data-level="4.2" data-basepath=".." data-revision="1420450147146">
+    
+
+<div class="book-summary">
+    <div class="book-search">
+        <input type="text" placeholder="Type to search" class="form-control" />
+    </div>
+    <ul class="summary">
+        
+    	
+    	
+    	
+
+        
+
+        
+    
+        
+        <li class="chapter " data-level="0" data-path="index.html">
+            
+                
+                    <a href="../index.html">
+                        <i class="fa fa-check"></i>
+                        
+                         Cassandra Readings
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1" data-path="cassandra_readings.html">
+            
+                
+                    <a href="../cassandra_readings.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.</b>
+                        
+                         Cassandra启动
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2" data-path="cassandra/README.html">
+            
+                
+                    <a href="../cassandra/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.</b>
+                        
+                         Cassandra查询过程
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="2.1" data-path="cassandra/columnfamilystore.html">
+            
+                
+                    <a href="../cassandra/columnfamilystore.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.1.</b>
+                        
+                         创建ColumnFamilyStore
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.2" data-path="cassandra/bloom_filter.html">
+            
+                
+                    <a href="../cassandra/bloom_filter.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.2.</b>
+                        
+                         Bloom Filter实现
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.3" data-path="cassandra/cassandra_cache.html">
+            
+                
+                    <a href="../cassandra/cassandra_cache.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.3.</b>
+                        
+                         Cassandra Cache
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3" data-path="cassandra/README.html">
+            
+                
+                    <a href="../cassandra/README.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.</b>
+                        
+                         Cassandra写入过程
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.1" data-path="cassandra/atomic_batches.html">
+            
+                
+                    <a href="../cassandra/atomic_batches.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.1.</b>
+                        
+                         Atomic Batches
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4" data-path="cassandra/gossiper.html">
+            
+                
+                    <a href="../cassandra/gossiper.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.</b>
+                        
+                         Gossiper
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="4.1" data-path="cassandra/node_decommission.html">
+            
+                
+                    <a href="../cassandra/node_decommission.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.1.</b>
+                        
+                         Node 管理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter active" data-level="4.2" data-path="cassandra/streaming.html">
+            
+                
+                    <a href="../cassandra/streaming.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.2.</b>
+                        
+                         Streaming
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+
+        
+        <li class="divider"></li>
+        <li>
+            <a href="http://www.gitbook.io/" target="blank" class="gitbook-link">Published using GitBook</a>
+        </li>
+        
+    </ul>
+</div>
+
+    <div class="book-body">
+        <div class="body-inner">
+            <div class="book-header">
+    <!-- Actions Left -->
+    <a href="#" class="btn pull-left toggle-summary" aria-label="Toggle summary"><i class="fa fa-align-justify"></i></a>
+    <a href="#" class="btn pull-left toggle-search" aria-label="Toggle search"><i class="fa fa-search"></i></a>
+    
+    <div id="font-settings-wrapper" class="dropdown pull-left">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle font settings"><i class="fa fa-font"></i>
+        </a>
+        <div class="dropdown-menu font-settings">
+    <div class="dropdown-caret">
+        <span class="caret-outer"></span>
+        <span class="caret-inner"></span>
+    </div>
+
+    <div class="buttons">
+        <button type="button" id="reduce-font-size" class="button size-2">A</button>
+        <button type="button" id="enlarge-font-size" class="button size-2">A</button>
+    </div>
+
+    <div class="buttons font-family-list">
+        <button type="button" data-font="0" class="button">Serif</button>
+        <button type="button" data-font="1" class="button">Sans</button>
+    </div>
+
+    <div class="buttons color-theme-list">
+        <button type="button" id="color-theme-preview-0" class="button size-3" data-theme="0">White</button>
+        <button type="button" id="color-theme-preview-1" class="button size-3" data-theme="1">Sepia</button>
+        <button type="button" id="color-theme-preview-2" class="button size-3" data-theme="2">Night</button>
+    </div>
+</div>
+
+    </div>
+
+    <!-- Actions Right -->
+    
+    <div class="dropdown pull-right">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle share dropdown"><i class="fa fa-share-alt"></i>
+        </a>
+        <div class="dropdown-menu font-settings dropdown-left">
+            <div class="dropdown-caret">
+                <span class="caret-outer"></span>
+                <span class="caret-inner"></span>
+            </div>
+            <div class="buttons">
+                <button type="button" data-sharing="twitter" class="button">Twitter</button>
+                <button type="button" data-sharing="google-plus" class="button">Google</button>
+                <button type="button" data-sharing="facebook" class="button">Facebook</button>
+                <button type="button" data-sharing="weibo" class="button">Weibo</button>
+                <button type="button" data-sharing="instapaper" class="button">Instapaper</button>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <a href="#" target="_blank" class="btn pull-right google-plus-sharing-link sharing-link" data-sharing="google-plus" aria-label="Share on Google Plus"><i class="fa fa-google-plus"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right facebook-sharing-link sharing-link" data-sharing="facebook" aria-label="Share on Facebook"><i class="fa fa-facebook"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right twitter-sharing-link sharing-link" data-sharing="twitter" aria-label="Share on Twitter"><i class="fa fa-twitter"></i></a>
+    
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../" >Cassandra</a>
+    </h1>
+</div>
+
+            <div class="page-wrapper" tabindex="-1">
+                <div class="page-inner">
+                
+                
+                    <section class="normal" id="section-gitbook_5008">
+                    
+                        <h1 id="streaming">Streaming</h1>
+<p>处理节点之间的数据交换，主要用在repair, bootstrap, bulkload, move等等．接收和转移文件被划分到同一个stream session, 每个desctination创建一个stream session, 所有的stream sessions关联stream plan.</p>
+<h2 id="">公共接口</h2>
+<h4 id="streamplan">StreamPlan</h4>
+<p>用来创建streaming plan(what to transfer, what to reqeust), 在其内部创建StreamSessions和其他节点交互，将所有的StreamSessions关联到StreamResultFuture，其异步返回StreamState.</p>
+<h4 id="streamresultfuture">StreamResultFuture</h4>
+<p>表示StreamPlan的future结果．添加StreamEventHandler(监听StreamEvent)到StreamResultFuture, 可以用来跟踪StreamPlan的执行情况</p>
+<h4 id="streamstate">StreamState</h4>
+<p>Streaming的执行状态．可以得到在运行的streaming快照StreamResultFuture#getCurrentState，也可以得到最终状态StreamResultFuture#get.</p>
+<h4 id="streammanager">StreamManager</h4>
+<p>管理所有的streaming progress, 提供stream JMX notification</p>
+<h4 id="streameventhandler">StreamEventHandler</h4>
+<p>处理相应的event</p>
+<h2 id="">内部接口</h2>
+<h4 id="streamsession">StreamSession</h4>
+<p>对每个destination, 包含所有的stream tasks(IN/OUT)</p>
+<pre><code class="lang-java">Map&lt;UUID, StreamTransferTask&gt; transfers = <span class="hljs-keyword">new</span> ConcurrentHashMap&lt;&gt;();
+Map&lt;UUID, StreamReceiveTask&gt;  receivers = <span class="hljs-keyword">new</span> ConcurrentHashMap&lt;&gt;();
+</code></pre>
+<h4 id="streamtask">StreamTask</h4>
+<p>代表每个IN/OUT task, 每个task都属于一个Stream session. StreamReceiveTask 接收从destination来的SSTable, 发送complete reply. StreamTransferTask, 发送Stream request到destination, 等待reply.</p>
+<h4 id="connectionhandler">ConnectionHandler</h4>
+<p>发送/接收Stream messages</p>
+<h2 id="message-flow">Message Flow</h2>
+<h4 id="">初始化</h4>
+<p>当执行StreamPlan#execute, 为每个endpoint初始化StreamSessions, 每个stream session交换messages和文件直到它完成或则失败．</p>
+<p>如下是在StreamSession中初始化IncomingMessageHandler和OutgoingMessageHandler：</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initiate</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException
+</span>{
+    <span class="hljs-comment">//创建incoming socket</span>
+    Socket incomingSocket = session.createConnection();
+    <span class="hljs-comment">//启动incloming 线程</span>
+    incoming.start(incomingSocket, StreamMessage.CURRENT_VERSION);
+    <span class="hljs-comment">//发送InitMessage</span>
+    incoming.sendInitMessage(incomingSocket, <span class="hljs-keyword">true</span>);
+    <span class="hljs-comment">//创建outgoing Socket</span>
+    Socket outgoingSocket = session.createConnection();
+    <span class="hljs-comment">//启动outgoing 线程</span>
+    outgoing.start(outgoingSocket, StreamMessage.CURRENT_VERSION);
+    <span class="hljs-comment">//发送InitMessage</span>
+    outgoing.sendInitMessage(outgoingSocket, <span class="hljs-keyword">false</span>);
+}
+</code></pre>
+<h4 id="stream">建立Stream连接</h4>
+<p>每个stream session 发送StreamInit message 到其他节点． StreamInit包含stream flag告知节点开始streaming 流程．一旦节点收到StreamInit, 它将创建同样的StreamPlan和StreamSession.</p>
+<p>StreamInit结构</p>
+<pre><code class="lang-java"> <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> InetAddress from;
+ <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> sessionIndex;
+ <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> UUID planId;
+ <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> String description;
+ <span class="hljs-comment">//outgoing or incoming</span>
+ <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> isForOutgoing;
+ <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> keepSSTableLevel;
+</code></pre>
+<h4 id="stream">准备Stream</h4>
+<p> 一旦initiator建立起connection, 它将发送Prepare message. Prepare message包含stream requests和stream summaries. Stream requests为keyspace/columnfamilies请求数据. Stream summaries用来传输数据到peer node. 它描述有多少文件和数据的大小．</p>
+<p>一旦peer node接收到Prepare message, perr StreamSession将会准备transfer/receive文件．如果initiator请求数据, peer node 发回包含与接收到的stream requests相应的stream summaries．</p>
+<p>StreamRequest结构</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> String keyspace;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> Collection&lt;Range&lt;Token&gt;&gt; ranges;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> Collection&lt;String&gt; columnFamilies = <span class="hljs-keyword">new</span> HashSet&lt;&gt;();
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> repairedAt;
+</code></pre>
+<p>StreamSummary结构</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> UUID cfId;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> files;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> totalSize;
+</code></pre>
+<h4 id="file-transfer">File Transfer</h4>
+<p>当双方完成prepare, 他们开始传输文件，每个transfer都包含file header和data.　File header用来描述data内容，包含有keyspace/columnfamily name,  sections of the file, sequence number, and if compressed, compression information. Sequence number 用来做retry.</p>
+<h5 id="">文件传输细节</h5>
+<p>文件传输分为两种情况：Ranges和File传输</p>
+<h6 id="ranges">Ranges传输</h6>
+<p>接收到StreamRequest, 从StreamRequest#ranges计算出要传输的数据在SSTable中的具体位置，创建SSTableStreamingSections，最后组装成OutgoingFileMessage，添加到StreamTransferTask中．</p>
+<h5 id="file">File传输</h5>
+<p>与Ranges传输类似，略</p>
+<p>如下是计算Ranges在SSTable中的位置</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> List&lt;Pair&lt;Long,Long&gt;&gt; getPositionsForRanges(Collection&lt;Range&lt;Token&gt;&gt; ranges)
+{
+    <span class="hljs-comment">// use the index to determine a minimal section for each range</span>
+    List&lt;Pair&lt;Long,Long&gt;&gt; positions = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+    <span class="hljs-keyword">for</span> (Range&lt;Token&gt; range : Range.normalize(ranges))
+    {
+        AbstractBounds&lt;RowPosition&gt; keyRange = range.toRowBounds();
+        RowIndexEntry idxLeft = getPosition(keyRange.left, Operator.GT);
+        <span class="hljs-keyword">long</span> left = idxLeft == <span class="hljs-keyword">null</span> ? -<span class="hljs-number">1</span> : idxLeft.position;
+        <span class="hljs-keyword">if</span> (left == -<span class="hljs-number">1</span>)
+            <span class="hljs-comment">// left is past the end of the file</span>
+            <span class="hljs-keyword">continue</span>;
+        RowIndexEntry idxRight = getPosition(keyRange.right, Operator.GT);
+        <span class="hljs-keyword">long</span> right = idxRight == <span class="hljs-keyword">null</span> ? -<span class="hljs-number">1</span> : idxRight.position;
+        <span class="hljs-keyword">if</span> (right == -<span class="hljs-number">1</span> || Range.isWrapAround(range.left, range.right))
+            <span class="hljs-comment">// right is past the end of the file, or it wraps</span>
+            right = uncompressedLength();
+        <span class="hljs-keyword">if</span> (left == right)
+            <span class="hljs-comment">// empty range</span>
+            <span class="hljs-keyword">continue</span>;
+        positions.add(Pair.create(left, right));
+    }
+    <span class="hljs-keyword">return</span> positions;
+}
+</code></pre>
+<p>如下是在StreamTransferTask中添加Transfer file</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">void</span> <span class="hljs-title">addTransferFile</span><span class="hljs-params">(SSTableReader sstable, <span class="hljs-keyword">long</span> estimatedKeys, List&lt;Pair&lt;Long, Long&gt;&gt; sections, <span class="hljs-keyword">long</span> repairedAt)</span>
+</span>{
+    <span class="hljs-keyword">assert</span> sstable != <span class="hljs-keyword">null</span> &amp;&amp; cfId.equals(sstable.metadata.cfId);
+    OutgoingFileMessage message = <span class="hljs-keyword">new</span> OutgoingFileMessage(sstable, sequenceNumber.getAndIncrement(), estimatedKeys, sections, repairedAt, session.keepSSTableLevel());
+    files.put(message.header.sequenceNumber, message);
+    totalSize += message.header.size();
+}
+</code></pre>
+<p>FileMessageHeader结构</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> UUID cfId;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> sequenceNumber;
+<span class="hljs-comment">//SSTable version</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> String version;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> SSTableFormat.Type format;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> estimatedKeys;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> List&lt;Pair&lt;Long, Long&gt;&gt; sections;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> CompressionInfo compressionInfo;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> repairedAt;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> sstableLevel;
+</code></pre>
+
+                    
+                    </section>
+                
+                
+                </div>
+            </div>
+        </div>
+
+        
+        <a href="../cassandra/node_decommission.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: Node 管理"><i class="fa fa-angle-left"></i></a>
+        
+        
+    </div>
+</div>
+
+        
+<script src="../gitbook/app.js"></script>
+
+    
+    <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+    
+    <script src="../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    
+
+<script>
+require(["gitbook"], function(gitbook) {
+    var config = {"fontSettings":{"theme":null,"family":"sans","size":2}};
+    gitbook.start(config);
+});
+</script>
+
+        
+    </body>
+    
+</html>

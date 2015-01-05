@@ -18,6 +18,8 @@
     
     
     
+    <link rel="next" href="../cassandra/node_decommission.html" />
+    
     
     <link rel="prev" href="../cassandra/atomic_batches.html" />
     
@@ -31,7 +33,7 @@
 
 
         
-    <div class="book"  data-level="4" data-basepath=".." data-revision="1419501251136">
+    <div class="book"  data-level="4" data-basepath=".." data-revision="1420450147146">
     
 
 <div class="book-summary">
@@ -200,6 +202,44 @@
                 
             
             
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="4.1" data-path="cassandra/node_decommission.html">
+            
+                
+                    <a href="../cassandra/node_decommission.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.1.</b>
+                        
+                         Node 管理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4.2" data-path="cassandra/streaming.html">
+            
+                
+                    <a href="../cassandra/streaming.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.2.</b>
+                        
+                         Streaming
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
         </li>
     
 
@@ -291,7 +331,7 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_1391">
+                    <section class="normal" id="section-gitbook_5006">
                     
                         <h1 id="gossiper">Gossiper</h1>
 <p>The gossiper is responsible for making sure every node in the system eventually knows important information about every other node&#39;s state, including those that are unreachable or not yet in the cluster when any given state change occurs.</p>
@@ -312,7 +352,7 @@
 <p>This way a node initiates gossip exchange with one to three nodes every round (or zero if it is alone in the cluster)</p>
 <h2 id="data-structures">Data structures</h2>
 <p>HeartBeatState</p>
-<p>Consists of generation and version number.Generation stays the same when server is running and grows every time the node is started. Used for distinguishing state information before and after a node restart. Version number is shared with application states and guarantees ordering. Each node has one HeartBeatState associated with it.</p>
+<p>Consists of generation and version number. Generation stays the same when server is running and grows every time the node is started. Used for distinguishing state information before and after a node restart. Version number is shared with application states and guarantees ordering. Each node has one HeartBeatState associated with it.</p>
 <p>ApplicationState</p>
 <p>Consists of state and version number and represents a state of single &quot;component&quot; or &quot;element&quot; within Cassandra. For instance application state for &quot;load information&quot; could be (5.2, 45), which means that node load is 5.2 at version 45.  Version number is shared by application states and HeartBeatState to guarantee ordering and can only grow.</p>
 <p>EndPointState</p>
@@ -356,7 +396,7 @@ EndPointState 10.0.0.3
   ApplicationState: RELEASE_VERSION: 3.0.0-SNAPSHOT,4
   ApplicationState: RPC_ADDRESS: 10.0.0.3,3
   ApplicationState: TOKENS: -200858863971061419,-4098422355153952737,15
-  ApplicationState: LOAD: 200099,45
+  ApplicationState: LOAD: 200000099,541675
   ApplicationState: DC: datacenter1,6
   ApplicationState: RACK: rack1,8
   ApplicationState: SEVERITY: 0.2557544708251953,541678
@@ -374,14 +414,14 @@ EndPointState 10.0.0.4
   ApplicationState: SEVERITY: 0.2557544708251953,9
 </code></pre><p>In this case max version number for these endpoints are 541662, 99, 541679 and 11 respectively. A gossip digest for endpoint 10.0.0.2 would be &quot;10.0.0.2:3:99&quot; and essentially says &quot;AFAIK endpoint 10.0.0.2 is running generation 3 and maximum version is 99&quot;. When the node sends GossipDigestSynMessage, there will be exactly one gossip digest per known endpoint. That is, in this case GossipDigestSynMessage contents would be: &quot;10.0.0.1:2:541662 10.0.0.2:3:99 10.0.0.3:4:541679 10.0.0.4:1:11&quot;. HeartBeatState version number is not necessarily always the biggest, but that is the most common situation by far.</p>
 <h4 id="main-code-pointers">Main code pointers:</h4>
-<pre><code>Gossiper.GossipTimerTask.run: Main gossiper loop
-Gossiper.makeRandomGossipDigest: Constructs gossip digest list to be used in GossipDigestSynMessage
-Gossiper.sendGossip
+<pre><code>Gossiper.GossipTask.run: Main gossiper loop
+Gossiper.makeRandomGossipDigest: Constructs gossip digest list to be used in the GossipDigestSyn message
+Gossiper.sendGossip, choose random endpoint to send GossipDigestSyn
 </code></pre><h3 id="gossipdigestackmessage">GossipDigestAckMessage</h3>
-<p>A node receiving GossipDigestSynMessage will examine it and reply with GossipDigestAckMessage, which includes <em>two</em> parts: gossip digest list and endpoint state list. From the gossip digest list arriving in GossipDigestSynMessage we will know for each endpoint whether the sending node has newer or older information than we do. An example to illustrate this:</p>
+<p>A node receiving GossipDigestSynMessage will examine it and reply with GossipDigestAckMessage, which includes two parts: gossip digest list and endpoint state list. From the gossip digest list arriving in GossipDigestSynMessage we will know for each endpoint whether the sending node has newer or older information than we do. An example to illustrate this:</p>
 <p>Suppose that we&#39;re now in node 10.0.0.2 and our endPointState is as follows:</p>
 <pre><code>EndPointState 10.0.0.1
-  HeartBeatState: generation 2, version 67
+  HeartBeatState: generation 2, version 540001
   ApplicationState &quot;STATUS&quot;: NORMAL,-5125166994968203647,16
   ApplicationState: HOST_ID: 054040af-7998-4ae4-861b-28edefe7e64e,2
   ApplicationState: NET_VERSION: 9,1
@@ -391,7 +431,7 @@ Gossiper.sendGossip
   ApplicationState: LOAD: 1827, 32
   ApplicationState: DC: datacenter1,6
   ApplicationState: RACK: rack1,8
-  ApplicationState: SEVERITY: 0.2557544708251953,66
+  ApplicationState: SEVERITY: 0.2557544708251953,540000
 EndPointState 10.0.0.2
   HeartBeatState: generation 3, version 512
   ApplicationState &quot;STATUS&quot;: NORMAL,5024364346313730023,16
@@ -405,22 +445,32 @@ EndPointState 10.0.0.2
   ApplicationState: RACK: rack1,8
   ApplicationState: SEVERITY: 0.2557544708251953,98
 EndPointState 10.0.0.3
-  HeartBeatState: generation 4, version 541679
+  HeartBeatState: generation 4, version 541660
   ApplicationState &quot;STATUS&quot;: NORMAL,-200858863971061419,16
   ApplicationState: HOST_ID: 054040af-7998-4ae4-861b-28edefe7e68d,2
   ApplicationState: NET_VERSION: 9,1
   ApplicationState: RELEASE_VERSION: 3.0.0-SNAPSHOT,4
   ApplicationState: RPC_ADDRESS: 10.0.0.3,3
   ApplicationState: TOKENS: -200858863971061419,-4098422355153952737,15
-  ApplicationState: LOAD: 200099,45
+  ApplicationState: LOAD: 20099,541659
   ApplicationState: DC: datacenter1,6
   ApplicationState: RACK: rack1,8
-  ApplicationState: SEVERITY: 0.2557544708251953,541678
+  ApplicationState: SEVERITY: 0.2557544708251953,541650
 </code></pre><p>Remember that the arriving gossip digest list is: &quot;10.0.0.1:2:541662 10.0.0.2:3:99 10.0.0.3:4:541679 10.0.0.4:1:11&quot;. When the receiving end is handling this, following steps are done:</p>
 <h4 id="sort-gossip-digest-list">Sort gossip digest list</h4>
 <p>Sort gossip digest list according to the difference in max version number between sender&#39;s digest and our own information in descending order. That is, handle those digests first that differ mostly in version number. Number of endpoint information that fits in one gossip message is limited. This step is to guarantee that we favor sending information about nodes where information difference is biggest (sending node has very old information compared to us).</p>
-<p>Examine gossip digest list</p>
-<h2 id="subscriber">Subscriber</h2>
+<h4 id="examine-gossip-digest-list">Examine gossip digest list</h4>
+<p>At this stage we go through the arriving gossip digest list and construct the two parts of GossipDigestAckMessage mentioned above (gossip digest list and endpoint state list). Let us go through the example digest one by one:</p>
+<p>10.0.0.1:2:541662 In our own endPointStateMap the generation is the same, so 10.0.0.1 has not rebooted since we have last heard of it. Version number in the digest is bigger than our max version number (540001 &lt; 541662), so we have to ask the sender what has happened since version 540001. For this purpose we include a gossip digest 10.0.0.1:2:540001, which says &quot;I know about 10.0.0.1 only until generation 2, version 540001, please tell me anything that is newer than this&quot;.</p>
+<p>10.0.0.2:3:99 When examining this, we notice that we know more than the sender about 10.0.0.2 (generations match, but our version is bigger 512 &gt; 99). Sender&#39;s max version is 99, so we look for any states that are newer than this. As we can see from the endPointStateMap, there are two: ApplicationState: LOAD: 647004848,511 and and HeartBeatState(512). We send this ApplicationState to the sender. Please note that in this case we are not sending digests, as digest only tells the maximum version number. In this case we already know that there is difference, so we will send full ApplicationStates.</p>
+<p>10.0.0.3:3:541679 In this case generations do not match. Our generation is smaller than the arriving, so 10.0.0.3 must have rebooted. We will ask all data from the sender for generation 3 starting from smallest version number 0. That is, we insert gossip digest 10.0.0.3:1259912238:0 to the reply.</p>
+<p>10.0.0.4:1:11 We do not know anything about this endpoint, so we proceed in the same manner as 10.0.0.3 and ask for all information. Insert digest 10.0.0.4:1:0 to the reply.</p>
+<p>At this point we have constructed GossipDigestAckMessage, which includes following information:</p>
+<pre><code>10.0.0.1:2:540001
+10.0.0.3:3:0
+10.0.0.4:1:0
+10.0.0.2:[ ApplicationState: LOAD: 647004848,511], [ HeartBeatState: generation 3, version 512]
+</code></pre><h2 id="subscriber">Subscriber</h2>
 <h2 id="statuschange">StatusChange</h2>
 <pre><code class="lang-java"><span class="hljs-keyword">enum</span> ApplicationState
 {
@@ -459,8 +509,10 @@ EndPointState 10.0.0.3
         </div>
 
         
-        <a href="../cassandra/atomic_batches.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: Atomic Batches"><i class="fa fa-angle-left"></i></a>
+        <a href="../cassandra/atomic_batches.html" class="navigation navigation-prev " aria-label="Previous page: Atomic Batches"><i class="fa fa-angle-left"></i></a>
         
+        
+        <a href="../cassandra/node_decommission.html" class="navigation navigation-next " aria-label="Next page: Node 管理"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

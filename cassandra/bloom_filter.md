@@ -30,8 +30,8 @@
 
  ![BloomFilter add callstack](images/BloomFilterAddCallStack.png)
 
-　1.　在创建IndexSummary时，Filter.db不存在时<br/>
-　2.　在往Cassandra写入数据时．
+1.　在创建IndexSummary时，Filter.db不存在时<br/>
+2.　在往Cassandra写入数据时．
 
  ```java
  public void add(ByteBuffer key)

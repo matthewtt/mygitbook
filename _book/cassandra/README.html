@@ -33,7 +33,7 @@
 
 
         
-    <div class="book"  data-level="3" data-basepath=".." data-revision="1419501251136">
+    <div class="book"  data-level="3" data-basepath=".." data-revision="1420450147146">
     
 
 <div class="book-summary">
@@ -202,6 +202,44 @@
                 
             
             
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="4.1" data-path="cassandra/node_decommission.html">
+            
+                
+                    <a href="../cassandra/node_decommission.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.1.</b>
+                        
+                         Node 管理
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="4.2" data-path="cassandra/streaming.html">
+            
+                
+                    <a href="../cassandra/streaming.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>4.2.</b>
+                        
+                         Streaming
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
         </li>
     
 
@@ -293,60 +331,9 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_1386">
+                    <section class="normal" id="section-gitbook_5001">
                     
-                        <h1 id="cassandra">Cassandra查询过程</h1>
-<h3 id="service">service</h3>
-<ul>
-<li><p><code>StorageService</code> <br/>
-重要参数<br/></p>
-<pre><code class="lang-java">TokenMetadata tokenMetadata; <span class="hljs-comment">//管理 the token/endpoint metadata 信息 */</span>
-</code></pre>
-</li>
-</ul>
-<h3 id="net">net</h3>
-<ul>
-<li><p><code>MessagingService</code> <br/>
-重要参数<br/></p>
-<pre><code class="lang-java">EnumMap&lt;Verb, IVerbHandler&gt;(Verb.class) verbHandlers; <span class="hljs-comment">//通过verb查询messaging handlers</span>
-SimpleCondition listenGate; <span class="hljs-comment">//</span>
-NonBlockingHashMap&lt;InetAddress, OutboundTcpConnectionPool&gt; connectionManagers;
-ArrayList&lt;SocketThread&gt; socketThreads;
-ExpiringMap&lt;Integer, CallbackInfo&gt; callbacks; <span class="hljs-comment">//配置参数DatabaseDescriptor.getMinRpcTimeout</span>
-</code></pre>
-</li>
-</ul>
-<h3 id="locator">locator</h3>
-<ul>
-<li><p><code>AbstractReplicationStrategy</code> 所有replication strategies的父类 <br/></p>
-<pre><code class="lang-java">String keyspaceName;
-Keyspace keyspace;
-Map&lt;String, String&gt; configOptions;
-TokenMetadata tokenMetadata;
-IEndpointSnitch snitch;
-NonBlockingHashMap&lt;Token, ArrayList&lt;InetAddress&gt;&gt; cachedEndpoints;
-</code></pre>
-</li>
-</ul>
-<h3 id="sstable">sstable</h3>
-<ul>
-<li><p><code>SStable</code>, 在SequenceFile之上创建这个类，按顺序存放数据，但排序方式取决于application. 一个单独的索引文件将被维护，包含SSTable　keys和在SSTable中的偏移位置. 在SSTable被打开时，每隔indexInterval的key会被读到内存。每个SSTable 为keys保存一份bloom filter文件.</p>
-<pre><code class="lang-java"> Descriptor descriptor;
- Set&lt;Component&gt; components;
- CFMetaData metadata;
- IPartitioner partitioner;
- <span class="hljs-keyword">boolean</span> compression;
- DecoratedKey first, last;
-</code></pre>
-</li>
-<li><p><code>SSTableReader extends SSTable</code>, 通过Keyspace.onStart打开SSTableReaders; 在此之后通过SSTableWriter.renameAndOpen被创建. 不要在存在的SSTable文件上re-call　open()，使用ColumnFamilyStore保存的references来使用.</p>
-<pre><code class="lang-java"> SegmentedFile ifile, dfile;
- IndexSummary indexSummary;
- IFilter bf;
- StatsMetadata sstableMetadata;
-</code></pre>
-</li>
-</ul>
+                        <h1 id="cassandra">Cassandra写入过程</h1>
 
                     
                     </section>
