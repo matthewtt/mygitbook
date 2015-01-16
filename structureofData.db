@@ -1,0 +1,27 @@
+key length: short
+key value: ByteBuffer
+
+localDeletionTime: int
+markedForDeleteAt: long
+
+CellName:
+name length: short
+name value: ByteBuffer
+
+serializationFlags: byte
+(DELETION_MASK, EXPIRATION_MASK, COUNTER_MASK, COUNTER_UPDATE_MASK, RANGE_TOMBSTONE_MASK)
+
+if Cell is CounterCell
+    timestampOfLastDelete: long
+
+if Cell is ExpiringCell
+    timeToLive: int
+    localExpirationTime: int
+
+timestamp: long
+
+Cell Value:
+value length: int
+value: ByteBuffer
+
+END_OF_ROW(0x0000): short

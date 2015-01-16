@@ -1,0 +1,15 @@
+compressorName: UTF
+options.size: int
+options values{
+    key:UTF
+    value: UTF
+}
+
+chunkLength: int
+dataLength: int(没有压缩的数据长度)
+chunkCount: int
+chunkOffset:long
+.
+.
+.
+
