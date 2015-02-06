@@ -7,6 +7,7 @@
    * [Bloom Filter实现](cassandra/bloom_filter.md)
    * [Cassandra Cache](cassandra/cassandra_cache.md)
    * [数据文件读写](cassandra/segmentedfile.md)
+   * [Second Index](cassandra/second_index.md)
 * [Cassandra写入过程](cassandra/README.md)
    * [Atomic Batches](cassandra/atomic_batches.md)
 * [Gossiper](cassandra/gossiper.md)

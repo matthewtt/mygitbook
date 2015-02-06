@@ -4,7 +4,7 @@
     <head>
         
         <meta charset="UTF-8">
-        <title>Cassandra Cache | Cassandra</title>
+        <title>数据文件读写 | Cassandra</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.0.3">
@@ -18,10 +18,10 @@
     
     
     
-    <link rel="next" href="../cassandra/segmentedfile.html" />
+    <link rel="next" href="../cassandra/README.html" />
     
     
-    <link rel="prev" href="../cassandra/bloom_filter.html" />
+    <link rel="prev" href="../cassandra/cassandra_cache.html" />
     
 
         
@@ -33,7 +33,7 @@
 
 
         
-    <div class="book"  data-level="2.3" data-basepath=".." data-revision="1421396777182">
+    <div class="book"  data-level="2.4" data-basepath=".." data-revision="1421396777182">
     
 
 <div class="book-summary">
@@ -130,7 +130,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="2.3" data-path="cassandra/cassandra_cache.html">
+        <li class="chapter " data-level="2.3" data-path="cassandra/cassandra_cache.html">
             
                 
                     <a href="../cassandra/cassandra_cache.html">
@@ -146,7 +146,7 @@
         </li>
     
         
-        <li class="chapter " data-level="2.4" data-path="cassandra/segmentedfile.html">
+        <li class="chapter active" data-level="2.4" data-path="cassandra/segmentedfile.html">
             
                 
                     <a href="../cassandra/segmentedfile.html">
@@ -347,110 +347,61 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_536">
+                    <section class="normal" id="section-gitbook_539">
                     
-                        <h1 id="cassandra-cache">Cassandra Cache</h1>
-<h2 id="cache">Cache初始化</h2>
-<p>Cache由三种类型，KeyCache，RowCache，CounterCache, 默认KeyCache开启, 类结构图
-<img src="images/CacheClassStructure.png" alt="ICache 类图"></p>
-<p>Cache接口和Map接口类似, 增加capacity显示容量, 在put和remove时不返回Value, 避免在SerializingCache中deserialize在offheap的Value数据．</p>
-<p><img src="images/CacheClassHierarchy.png" alt="ICache 层级关系"></p>
-<h3 id="keycache--countercache-">KeyCache 和 CounterCache 初始化</h3>
-<p>KeyCache 和 CounterCache的代码类似，此只列出KeyCache</p>
-<pre><code class="lang-java"><span class="hljs-keyword">private</span> AutoSavingCache&lt;KeyCacheKey, RowIndexEntry&gt; initKeyCache()
-{
-    <span class="hljs-keyword">long</span> keyCacheInMemoryCapacity = DatabaseDescriptor.getKeyCacheSizeInMB() * <span class="hljs-number">1024</span> * <span class="hljs-number">1024</span>;
-    ICache&lt;KeyCacheKey, RowIndexEntry&gt; kc = ConcurrentLinkedHashCache.create(keyCacheInMemoryCapacity);
-    AutoSavingCache&lt;KeyCacheKey, RowIndexEntry&gt; keyCache = <span class="hljs-keyword">new</span> AutoSavingCache&lt;&gt;(
-                                                           kc,
-                                                           CacheType.KEY_CACHE,
-                                                           <span class="hljs-keyword">new</span> KeyCacheSerializer());
-    <span class="hljs-keyword">int</span> keyCacheKeysToSave = DatabaseDescriptor.getKeyCacheKeysToSave();
-    keyCache.scheduleSaving(DatabaseDescriptor.getKeyCacheSavePeriod(), keyCacheKeysToSave);
-    <span class="hljs-keyword">return</span> keyCache;
+                        <h1 id="segmentedfile">SegmentedFile</h1>
+<p>用作Index.db和Data.db的对象表示，Index.db默认使用MmappedSegmentedFile，Data.db默认使用 CompressedPoolingSegmentedFile．先说下定义SegmentedFile的原因，JVM一次做多只能map 2GB的文件，超过这个值就会出现IllegalArgumentException，对于Index.db和Data.db, 如果其大小超过这个值就会分段map.</p>
+<h3 id="mmappedsegmentedfile">MmappedSegmentedFile</h3>
+<p>MmappedSegmentedFile中创建Segment代码片段</p>
+<pre><code class="lang-java">MappedByteBuffer segment = size &lt;= MAX_SEGMENT_SIZE
+                           ? raf.getChannel().map(FileChannel.MapMode.READ_ONLY, start, size)
+                           : <span class="hljs-keyword">null</span>;
+segments[i] = <span class="hljs-keyword">new</span> Segment(start, segment);
+</code></pre>
+<p>在MmappedSegmentedFile.Builder中有一个<code>List&lt;Long&gt; boundaries</code>概念, 在节点初始化时，对每个Index.db的文件进行逻辑分段，其大小不超过MAX_SEGMENT_SIZE</p>
+<h3 id="compressedpoolingsegmentedfile">CompressedPoolingSegmentedFile</h3>
+<p>CompressedPoolingSegmentedFile当前只在Data.db中使用．不存在分段，但多了一个CompressionInfo.db　文件，由类 CompressionMetadata　表示，其结构如下：</p>
+<pre><code class="lang-java"><span class="hljs-comment">//从CompressionInfo得到压缩之前Data.db的大小</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> dataLength;
+<span class="hljs-comment">//整个压缩文件Data.db的大小</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> compressedFileLength;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> hasPostCompressionAdlerChecksums;
+<span class="hljs-comment">//所有的compressed文件的chunk offset, 存储在Off-Heap</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Memory chunkOffsets;
+<span class="hljs-comment">//所有的compressed文件的chunk offset个数</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> chunkOffsetsSize;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> String indexFilePath;
+<span class="hljs-comment">//从CompressionInfo.db得到数据创建</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> CompressionParameters parameters;
+</code></pre>
+<pre><code class="lang-java"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CompressionParameters</span></span>{
+    <span class="hljs-comment">//默认是LZ4Compressor</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> ICompressor sstableCompressor;
+    <span class="hljs-comment">//默认是65536</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Integer chunkLength;
+    <span class="hljs-comment">//默认1.0</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">double</span> crcCheckChance;
 }
 </code></pre>
-<p>ConcurrentLinkedHashCache的创建</p>
-<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ConcurrentLinkedHashCache&lt;K, V&gt; create(<span class="hljs-keyword">long</span> weightedCapacity)
-{
-    EntryWeigher&lt;K, V&gt; entryWeigher = <span class="hljs-keyword">new</span> EntryWeigher&lt;K, V&gt;()
-    {
-        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">weightOf</span><span class="hljs-params">(K key, V value)</span>
-        </span>{
-            <span class="hljs-keyword">long</span> size = key.unsharedHeapSize() + value.unsharedHeapSize();
-            <span class="hljs-keyword">return</span> (<span class="hljs-keyword">int</span>) size;
-        }
-    };
-    ConcurrentLinkedHashMap&lt;K, V&gt; map = <span class="hljs-keyword">new</span> ConcurrentLinkedHashMap.Builder&lt;K, V&gt;()
-                                        .weigher(entryWeigher)
-                                        .maximumWeightedCapacity(weightedCapacity)
-                                        .concurrencyLevel(DEFAULT_CONCURENCY_LEVEL)
-                                        .build();
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ConcurrentLinkedHashCache&lt;&gt;(map);
+<p>每次执行CompressedPoolingSegmentedFile#getSegment, 都会先从FileCacheService执行一次查询，每个PoolingSegmentedFile都有一个<code>FileCacheService.CacheKey</code>, 具体代码如下：</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> FileDataInput <span class="hljs-title">getSegment</span><span class="hljs-params">(<span class="hljs-keyword">long</span> position)</span></span>{
+    RandomAccessReader reader = FileCacheService.instance.get(cacheKey);
+    <span class="hljs-keyword">if</span> (reader == <span class="hljs-keyword">null</span>)
+        reader = createReader(path);
+    reader.seek(position);
+    <span class="hljs-keyword">return</span> reader;
 }
 </code></pre>
-<h3 id="rowcache-">RowCache 初始化</h3>
-<p>RowCache初始化唯一的不同就是Cache的实现换成SerializingCache</p>
-<pre><code class="lang-java">ICache&lt;RowCacheKey, IRowCacheEntry&gt; rc = <span class="hljs-keyword">new</span> SerializingCacheProvider().create(rowCacheInMemoryCapacity);
-
-<span class="hljs-keyword">public</span> ICache&lt;RowCacheKey, IRowCacheEntry&gt; create(<span class="hljs-keyword">long</span> capacity)
-{
-    <span class="hljs-keyword">return</span> SerializingCache.create(capacity, <span class="hljs-keyword">new</span> RowCacheSerializer());
-}
-
-<span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> &lt;K, V&gt; SerializingCache&lt;K, V&gt; create(<span class="hljs-keyword">long</span> weightedCapacity, ISerializer&lt;V&gt; serializer)
-{
-    Weigher&lt;RefCountedMemory&gt; weigher = <span class="hljs-keyword">new</span> Weigher&lt;RefCountedMemory&gt;()
-    {
-        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">weightOf</span><span class="hljs-params">(RefCountedMemory value)</span>
-        </span>{
-            <span class="hljs-keyword">long</span> size = value.size();
-            <span class="hljs-keyword">return</span> (<span class="hljs-keyword">int</span>) size;
-        }
-    };
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> SerializingCache&lt;&gt;(weightedCapacity, weigher, serializer);
-}
-
-<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-title">SerializingCache</span><span class="hljs-params">(<span class="hljs-keyword">long</span> capacity, Weigher&lt;RefCountedMemory&gt; weigher, ISerializer&lt;V&gt; serializer)</span>
+<p>在CompressedPoolingSegmentedFile#createReader将创建CompressedRandomAccessReader, 如下是关于CompressedRandomAccessReader的创建</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">CompressedRandomAccessReader</span><span class="hljs-params">(String dataFilePath, CompressionMetadata metadata, PoolingSegmentedFile owner)</span>
 </span>{
-    <span class="hljs-keyword">this</span>.serializer = serializer;
-    EvictionListener&lt;K,RefCountedMemory&gt; listener = <span class="hljs-keyword">new</span> EvictionListener&lt;K, RefCountedMemory&gt;()
-    {
-        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onEviction</span><span class="hljs-params">(K k, RefCountedMemory mem)</span>
-        </span>{
-            mem.unreference();
-        }
-    };
-    <span class="hljs-keyword">this</span>.map = <span class="hljs-keyword">new</span> ConcurrentLinkedHashMap.Builder&lt;K, RefCountedMemory&gt;()
-               .weigher(weigher)
-               .maximumWeightedCapacity(capacity)
-               .concurrencyLevel(DEFAULT_CONCURENCY_LEVEL)
-               .listener(listener)
-               .build();
+    <span class="hljs-keyword">super</span>(<span class="hljs-keyword">new</span> File(dataFilePath), metadata.chunkLength(), owner);
+    <span class="hljs-keyword">this</span>.metadata = metadata;
+    checksum = metadata.hasPostCompressionAdlerChecksums ? <span class="hljs-keyword">new</span> Adler32() : <span class="hljs-keyword">new</span> CRC32();
+    compressed = ByteBuffer.wrap(<span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[metadata.compressor().initialCompressedBufferLength(metadata.chunkLength())]);
 }
 </code></pre>
-<h1 id="cache">Cache使用</h1>
-<h3 id="put">put操作</h3>
-<p><img src="images/CachePutStack.png" alt="put 调用关系">
-可以看到除了三个缓存类型都会执行装载文件中的缓存数据，Counter和Key都会执行插入操作, RowCache没有执行插入操作，仅仅执行replace操作。</p>
-<h3 id="putifabsent-replace">putIfAbsent, replace</h3>
-<p>只在RowCache中使用</p>
-<h3 id="get">get</h3>
-<p>有两种形式，不走统计的使用 InstrumentingCache.getInternal，走统计的使用InstrumentingCache.get</p>
-<pre><code class="lang-java"><span class="hljs-comment">//InstrumentingCache.get代码</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">get</span><span class="hljs-params">(K key)</span>
-</span>{
-    V v = map.get(key);
-    metrics.requests.mark();
-    <span class="hljs-keyword">if</span> (v != <span class="hljs-keyword">null</span>)
-        metrics.hits.mark();
-    <span class="hljs-keyword">return</span> v;
-}
-</code></pre>
-<p><img src="images/CacheGetStack.png" alt="get 调用关系"></p>
-<p>//todo 详细解释</p>
-<h3 id="remove">remove</h3>
-<p><img src="images/CacheRemoveStack.png" alt="remove 调用关系"></p>
+<p>CompressedRandomAccessReader有两点需要注意在Super class RandomAccessReader中创建chunkLength长度的buffer, 在LZ4Compressor同样会创建chunkLength的buffer</p>
 
                     
                     </section>
@@ -461,10 +412,10 @@
         </div>
 
         
-        <a href="../cassandra/bloom_filter.html" class="navigation navigation-prev " aria-label="Previous page: Bloom Filter实现"><i class="fa fa-angle-left"></i></a>
+        <a href="../cassandra/cassandra_cache.html" class="navigation navigation-prev " aria-label="Previous page: Cassandra Cache"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../cassandra/segmentedfile.html" class="navigation navigation-next " aria-label="Next page: 数据文件读写"><i class="fa fa-angle-right"></i></a>
+        <a href="../cassandra/README.html" class="navigation navigation-next " aria-label="Next page: Cassandra写入过程"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

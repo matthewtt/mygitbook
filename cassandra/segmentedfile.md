@@ -59,5 +59,7 @@ protected CompressedRandomAccessReader(String dataFilePath, CompressionMetadata 
     compressed = ByteBuffer.wrap(new byte[metadata.compressor().initialCompressedBufferLength(metadata.chunkLength())]);
 }
 ```
-CompressedRandomAccessReader有两点需要注意在Super class RandomAccessReader中创建chunkLength长度的buffer, 在LZ4Compressor同样会创建chunkLength的buffer
+CompressedRandomAccessReader有两点需要注意在Super class RandomAccessReader中创建chunkLength长度的buffer, 在LZ4Compressor同样会创建chunkLength的buffer, 在LZ4Compressor中存放的buffer是用于读取Data.db中的已被压缩的数据，RandomAccessReader中存放的是解压后的数据．
+
+
 
